@@ -6,10 +6,13 @@ import things from './router.mjs';
 
 const app = express();
 
-app.get('/', (req, res) => {
-  res.send('main page');
-});
+app.set('view engine', 'pug');
+app.set('views','./views');
 
+
+app.get('/', (req, res) => {
+  res.render('first_view')
+});
 
 
   
@@ -37,8 +40,4 @@ app.get('*', (req, res) => {
 
 
 
-
-
-app.listen(3001, () => {
-  console.log('Server is running on port 3001');
-});
+export default app;
