@@ -1,41 +1,17 @@
 
 
 
-import chalk from 'chalk'
+import CryptoJS from "crypto-js";
+import axios from "axios";
+
+const API_KEY = "TtsnymqBhk7WtEBgXhEbj9lRnsxKJjDo8ELyZmBrnc3L487Glj2ikQTM5jxC34m8GvHUMjLRwftfx8ZBglUbg"
+const API_SECRET = "tIBOTy2G7Rf7dekFuW9KFNDhg8WdywIuAPoRIWNZny72tRrgR8tOOTrhirleYuwTn6YvAJO1SwrGppFxOVDA"
+
+const client = new Spot(API_KEY, API_SECRET);
+
+// const spotTradingSymbol = await client.spotTradingSymbols({ symbol });
+// const queryAssets = await client.queryAssets();
+const symbolPriceTicker = await client.symbolPriceTicker({ symbol });
 
 
-const data = [
-    { id: 12, name: 'erfan', age: 26 },
-    { id: 13, name: 'alibi', age: 27 },
-    { id: 14, name: 'myon', age: 31 }
-  ];
-  
-//   const userId = 12;
-  
-//   // Use find to locate the object with the matching id
-//   const user = data.find(user => user.id === userId);
-  
-//   if (user) {
-//     console.log(user.name); // Output: 'erfan'
-//   } else {
-//     console.log('User not found');
-  
-
-// }
-
-
-
-let userid=  parseInt(14)
-
-
-const user_index =data.findIndex(user => user.id ===userid)
-const user =data.find(user => user.id ===userid)
-
-
-
-
-console.log(chalk.green('the real data =>'),data)
-var a = data.splice(user_index,2)
-// console.log(user_index)
-// console.log(a)
-console.log(chalk.blue('updated: =>',) ,data)
+console.log(symbolPriceTicker)
