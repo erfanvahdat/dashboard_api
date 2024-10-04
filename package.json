@@ -15,7 +15,7 @@
     "balanced-match": "^1.0.2",
     "binary-extensions": "^2.3.0",
     "bingx-api": "^1.21.0",
-    "bingx-trading-api": "^1.1.6",
+    "bingx-trading-api": "^0.0.3",
     "body-parser": "^1.20.2",
     "brace-expansion": "^1.1.11",
     "braces": "^3.0.3",
