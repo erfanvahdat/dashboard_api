@@ -39,6 +39,8 @@ function getParameters(API, timestamp, urlEncode) {
             parameters += key + '=' + API.payload[key] + '&';
         }
     }
+
+    
     if (parameters) {
         parameters = parameters.substring(0, parameters.length - 1);
         parameters += '&timestamp=' + timestamp;
@@ -103,5 +105,5 @@ router.get('/bingx-balance', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch or save data' });
     }
 });
-
+    
 export default router;

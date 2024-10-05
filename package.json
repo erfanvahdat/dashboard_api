@@ -25,11 +25,10 @@
     "character-parser": "^2.2.0",
     "chokidar": "^3.6.0",
     "concat-map": "^0.0.1",
-    "constantinople": "^4.0.1",
     "content-disposition": "^0.5.4",
     "content-type": "^1.0.5",
     "cookie": "^0.6.0",
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.0.0",
     "cookie-signature": "^1.0.6",
     "crypto-js": "^4.2.0",
     "debug": "^4.3.6",
@@ -45,6 +44,7 @@
     "escape-html": "^1.0.3",
     "etag": "^1.8.1",
     "express": "^4.19.2",
+    "express-validator": "^7.2.0",
     "fill-range": "^7.1.1",
     "finalhandler": "^1.2.0",
     "forwarded": "^0.2.0",
@@ -145,7 +145,7 @@
     "supports-preserve-symlinks-flag": "^1.0.0",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
+    "swagger-ui-express": "^4.1.2",
     "to-fast-properties": "^2.0.0",
     "to-regex-range": "^5.0.1",
     "toidentifier": "^1.0.1",
@@ -161,7 +161,7 @@
     "xtend": "^4.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "onchange": "^7.1.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
