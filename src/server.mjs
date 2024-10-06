@@ -1,7 +1,7 @@
 
 
 
-import app from '../app/main.mjs'; // Import the Express app from main.js
+import app from './main.mjs'; // Import the Express app from main.js
 import chalk from 'chalk'; // Optional: Use chalk for colored console outputs
 import dotenv from 'dotenv'; 
 
