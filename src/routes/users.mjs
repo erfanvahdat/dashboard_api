@@ -6,6 +6,9 @@ import { userSchema } from '../utils/userschema.mjs';
 // import  passport  from 'passport';
 // import '../strategies/local_stategies.mjs';
 
+import { hashpassword,comparepassword } from '../utils/hash.mjs';
+
+import User from '../mongoose/schemas/userschemas.mjs' 
 import { query ,body,validationResult,matchedData, checkSchema} from 'express-validator'; 
 const router = express.Router();
 
@@ -59,12 +62,33 @@ router.get('/user/:id',(req,res)=>{
     
   })
   
+  router.post('/user/user/', async (req, res) => {
+    try {
+      const { body } = req;
+      const data = matchedData(req);
   
+      // Await the hashed password
+      const hashed_password = await hashpassword(body.password); 
+      body.password = hashed_password;
+      
+      console.log(hashed_password);  // Log the hashed password
   
-  router.use(Middleware_2)
+      const newUser = new User(body);
   
+      // Save the new user to the database
+      const saveUser = await newUser.save(); 
   
-  router.put('/change_object/:id',
+      return res.status(201).send(saveUser);  // Send the saved user as the response
+  
+    } catch (err) {
+      console.log(err);  // Log any errors that occur
+      res.sendStatus(400);  // Send a 400 status code for any errors
+    }
+  });
+  
+router.use(Middleware_2)
+  
+router.put('/change_object/:id',
     checkSchema(userSchema),  // Use the schema for validation
     Middleware,
     (req, res) => {
@@ -88,7 +112,6 @@ router.get('/user/:id',(req,res)=>{
     }
   );
 
-
-
 const router_user = router;
+
 export default router_user;
