@@ -1,29 +1,26 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from '../mongoose/schemas/userschemas.mjs'; // Import User model
-import { hashpassword,comparepassword } from '../utils/hash.mjs';
-
+import { hashpassword, comparepassword } from '../utils/hash.mjs'; // Hashing utilities
 
 // Serialize user information to store in session
 passport.serializeUser((user, done) => {
-  console.log("Inside Serialize User:");
-  console.log(user._id); 
-  done(null, user._id); 
+  console.log("Inside Serialize User:", user._id);
+  done(null, user._id); // Store user ID in session
 });
 
 // Deserialize user by retrieving user info from the database
 passport.deserializeUser(async (id, done) => {
   console.log("Inside Deserialize User");
-
   try {
-    const findUser = await User.findById(id); // Fetch the user by _id from the database
+    const findUser = await User.findById(id); // Fetch the user by ID
     if (!findUser) {
-      throw new Error('User not found!');
+      return done(new Error('User not found!'), null);
     }
-    done(null, findUser); // Successfully found the user
+    done(null, findUser); // User found, attach to request
   } catch (err) {
     console.log(`Error during deserialization: ${err.message}`);
-    done(err, null); // Handle errors
+    done(err, null); // Pass error to Passport
   }
 });
 
@@ -31,20 +28,30 @@ passport.deserializeUser(async (id, done) => {
 passport.use(
   new LocalStrategy(async (username, password, done) => {
     try {
-      console.log(`Username: ${username}, Password: ${password}`);
+      console.log(`Attempting login: Username: ${username}`);
 
-      const user = await User.findOne({ username }); // Find user by username
+      // Find user by username
+      const user = await User.findOne({ username });
 
-      if (!user) return done(null, false, { message: 'User not found' }); // Return with message
-      
+      if (!user) {
+        console.log(`User not found: ${username}`);
+        return done(null, false, { message: 'User not found' });
+      }
 
-      if(!comparepassword(password,user.password)) throw new Error ('Invalid credentials')
-  
-      return done(null, user); // User authenticated successfully
+    
+      // Compare password
+      const isMatch = await comparepassword(password, user.password);
+      if (!isMatch) {
+        console.log(`Password mismatch for user: ${username}`);
+        return done(null, false); // Password mismatch
+      }
+
+      // User authenticated successfully
+      console.log(`User authenticated successfully: ${username}`);
+      return done(null, user);
     } catch (err) {
-      return done(err, null); // Handle errors during authentication
+      console.log(`Error during authentication: ${err.message}`);
+      return done(err, null); // Handle errors
     }
   })
 );
-
-export default passport;

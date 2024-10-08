@@ -14,7 +14,7 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import './strategies/local_stategies.mjs';
 import swaggerUi from 'swagger-ui-express';
 import router_user from './routes/users.mjs';
-import syncDatabase from '../database/db.mjs'; // Ensure database connection
+// import syncDatabase from '../database/db.mjs'; // Ensure database connection
 
 const app = express();
 
@@ -107,6 +107,7 @@ app.post('/auth', passport.authenticate('local'), (req, res) => {
 
 // Auth Status Check  
 app.get('/auth/status', (req, res) => {
+  
   console.log('Checking authentication status');
   console.log(req.user);
   console.log(req.session);

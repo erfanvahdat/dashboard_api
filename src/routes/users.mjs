@@ -9,6 +9,8 @@ import { userSchema } from '../utils/userschema.mjs';
 import { hashpassword,comparepassword } from '../utils/hash.mjs';
 
 import User from '../mongoose/schemas/userschemas.mjs' 
+import Balance from '../mongoose/schemas/Balance.mjs';
+
 import { query ,body,validationResult,matchedData, checkSchema} from 'express-validator'; 
 const router = express.Router();
 
@@ -37,11 +39,10 @@ const Middleware = (req,res,next)=>{
 
 };
 
-const Middleware_2 = (req,res,next)=>{
-      
-  console.log(`${req.method} - ${req.url}`)
-  next();
-}
+// const Middleware_2 = (req,res,next)=>{
+//   console.log(`${req.method} - ${req.url}`)
+//   next();
+// }
 
 // Get User ID
 router.get('/user/:id',(req,res)=>{
@@ -86,8 +87,50 @@ router.get('/user/:id',(req,res)=>{
     }
   });
   
-router.use(Middleware_2)
+
+
+
+
+router.get("/get_balance",(req,res)=>{
+
+
+
+  try{
+
+    
+  }catch(err){
+    console.log(err);
+  }
+
+})
+
+  router.post('/balance',(req,res)=>{
+
+    const {body} = req;
+    const data = matchedData(req);
+
+    const update_balance = new Balance(body);
+
+    // if (! update_balance) return res.send(400).send({'msg':"update Balance got an error!  "})
+
+    const saveBalance = update_balance.save(); 
+
+    return res.status(201).send(saveBalance);  
+  });
   
+
+
+
+
+// router.use(Middleware_2)
+
+
+
+
+
+
+
+
 router.put('/change_object/:id',
     checkSchema(userSchema),  // Use the schema for validation
     Middleware,
