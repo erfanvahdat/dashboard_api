@@ -9,9 +9,15 @@ import { userSchema } from '../utils/userschema.mjs';
 import { hashpassword,comparepassword } from '../utils/hash.mjs';
 
 import User from '../mongoose/schemas/userschemas.mjs' 
-import Balance from '../mongoose/schemas/Balance.mjs';
+import Balance from '../mongoose/schemas/Balanceschemas.mjs';
+
+
+
+import crypto_list_api from '../bingxapi/crypto_list_api.mjs';
+import Crypto_list from '../mongoose/schemas/cryptolistschemas.mjs';
 
 import { query ,body,validationResult,matchedData, checkSchema} from 'express-validator'; 
+
 const router = express.Router();
 
 
@@ -64,71 +70,152 @@ router.get('/user/:id',(req,res)=>{
   })
   
   router.post('/user/user/', async (req, res) => {
+
+
     try {
-      const { body } = req;
-      const data = matchedData(req);
-  
-      // Await the hashed password
-      const hashed_password = await hashpassword(body.password); 
-      body.password = hashed_password;
+      const exist_user = await User.findOne({ username: req.body.username });
       
-      console.log(hashed_password);  // Log the hashed password
+      if (exist_user) {
+          
+          // Do something if user exists
+          return res.status(200).send({'msg':"user does exist .Try another unique username and password."});  
+      } else {
+          console.log('User does not exist, trying to save into the database...');
+
+          // Create a new user object (assuming you have user data in req.body)
+          const newUser = new User(req.body);
+          // Save the new user to the database
+          const saveUser = await newUser.save();
+          
+          return res.status(201).send(`msg":"Use with username: ${newUser.username} and id: ${newUser._id}  is saved into DB `);  
+      }
+  } catch (err) {
+      console.error('Error while finding the user:', err);
+      return res.status(400).send({'msg':"something goes wrong! "});
+  }
   
-      const newUser = new User(body);
-  
-      // Save the new user to the database
-      const saveUser = await newUser.save(); 
-  
-      return res.status(201).send(saveUser);  // Send the saved user as the response
-  
-    } catch (err) {
-      console.log(err);  // Log any errors that occur
-      res.sendStatus(400);  // Send a 400 status code for any errors
-    }
-  });
-  
+      });
 
 
-
-
-router.get("/get_balance",(req,res)=>{
-
-
-
+router.get("/get_balance", (req,res)=>{
   try{
 
-    
+      return res.status(200).send({'msg':'msg',"data":balance_api})
+
   }catch(err){
     console.log(err);
   }
 
-})
+});
 
-  router.post('/balance',(req,res)=>{
 
-    const {body} = req;
-    const data = matchedData(req);
 
-    const update_balance = new Balance(body);
+async function getBalanceHandler(req, res) {
+  // Simulating some balance data
+  const response = balance_api ;
 
-    // if (! update_balance) return res.send(400).send({'msg':"update Balance got an error!  "})
+  return response;
+}
 
-    const saveBalance = update_balance.save(); 
 
-    return res.status(201).send(saveBalance);  
-  });
+
+router.get("/get_BA/",(req,res)=>{
+  try{
+
+    // const response = axios.get('http://localhost:3003/api/get_balance');
+
+    
+    
+
+    
+      return res.send({"data":balance_api.balance})
+    
+
+  }catch(err){
+    console.log(err);
+    return res.sendStatus(400)
+  }
+
+});
+
+router.post('/balance',(req,res)=>{
+
+    try{
+      const {body} = req;
+
+      const balanceData =  balance_api; 
+    
+      const newBalance = new Balance({
+        userId: balanceData.userId,
+        asset: balanceData.asset,
+        balance: balanceData.balance,
+        equity: balanceData.equity,
+        
+    });
+
+      // Check if all of body is healthy
+      if (!newBalance) throw Error(err);
+
+      const saveBalance = newBalance.save(); 
+      return res.status(201).send({msg: `balance_meta_data is saved successfully`,  data: newBalance  });
+    }catch(err){
+      console.log('something goes wrong...')
+      return res.sendStatus(400);
+    }
   
+    
+  });
+
+
+  
+router.post('/crypto_list',(req,res)=>{
+
+  try{
+    const {body} = req;
+
+  
+        
+
+    crypto_list_api.forEach(element => {
+
+          // console.log(element)
+
+
+      const newcrpyot_list = new Crypto_list({
+        symbol: element , 
+    });
+      
+        newcrpyot_list.save(); 
+    });
+
+
+    // Check if all of body is healthy
+    // if (!newcrpyot_list) throw Error(err);
+
+    
+    return res.status(201).send({msg: `crypto_list is saved successfully`,    });
+  }catch(err){
+    console.log('something goes wrong... ',err)
+    return res.sendStatus(400);
+  }
+
+  
+});
 
 
 
+router.get('/crypto_list', async (req, res) => {
+  try {
+      // Fetch all documents from the Crypto_list collection
+      const cryptoData = await Crypto_list.find(); 
+      res.status(200).send(cryptoData); // Send the data as a JSON response
+  } catch (err) {
+      console.error('Error fetching crypto list:', err);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // router.use(Middleware_2)
-
-
-
-
-
-
 
 
 router.put('/change_object/:id',

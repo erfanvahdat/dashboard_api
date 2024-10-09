@@ -7,23 +7,24 @@ const balanceSchema = new  mongoose.Schema({
     userid:{
         type: mongoose.Schema.Types.String,
         require:true,
-        unique: true,
+        unique: false,
     },
     balance:{
         type:mongoose.Schema.Types.String,
-            require :true,
-            unique: true
+        require :true,
+        unique: false,
         
     },
     equity: {
         type: mongoose.Schema.Types.String,
         require:true,
+        unique: false,
     
     },
     asset:{
         type:mongoose.Schema.Types.String,
-            require :true,
-            unique: false,
+        require :true,
+        unique: false,
         
     },
     
@@ -32,9 +33,4 @@ const balanceSchema = new  mongoose.Schema({
 const Balance=  mongoose.model('Balance',balanceSchema)
 
 export default Balance;
-
-
-
-
-
 

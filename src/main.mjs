@@ -49,7 +49,7 @@ const swaggerOptions = {
 
 app.use(
   session({
-    secret: 'your-secret-key',
+    secret: 'your-',
     resave: false,
     saveUninitialized: false,
     cookie: {

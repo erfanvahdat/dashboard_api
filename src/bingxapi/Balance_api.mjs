@@ -84,22 +84,7 @@ export async function getBalanceData() {
     }
 }
 
-// Function to convert the result into a dictionary and log it
-async function logBalanceData() {
-    try {
-        const data = await getBalanceData(); // Wait for the balance data to be resolved
-        if (data) {
-            const balanceDict = Object.assign({}, data); // Convert the data into a dictionary/object
-            console.log("Extracted Data as Dictionary:", balanceDict);
-        }
-    } catch (error) {
-        console.error("Error logging balance data:", error);
-    }
-}
 
-// Run the function to log the results
-// logBalanceData();
-// const data = Object.assign({}, await getBalanceData());
 
 
 const data = await getBalanceData();

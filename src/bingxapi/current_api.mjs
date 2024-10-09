@@ -1,23 +1,25 @@
 
 
 
-import CryptoJS from "crypto-js";
 import axios from "axios";
+import dotenv from 'dotenv'; 
+import CryptoJS from "crypto-js";
 
 
+// Load environment variables
+dotenv.config(); 
 
-const get_time = Date.now()
-console.log(get_time)
 
-
-const API_KEY = "TtsnymqBhk7WtEBgXhEbj9lRnsxKJjDo8ELyZmBrnc3L487Glj2ikQTM5jxC34m8GvHUMjLRwftfx8ZBglUbg"
-const API_SECRET = "tIBOTy2G7Rf7dekFuW9KFNDhg8WdywIuAPoRIWNZny72tRrgR8tOOTrhirleYuwTn6YvAJO1SwrGppFxOVDA"
+const API_KEY = process.env.API_KEY;
+const API_SECRET = process.env.SECRET_KEY;
 const HOST = "open-api.bingx.com"
 const API = {
-    "uri": "/openApi/swap/v3/user/balance",
+    "uri": "/openApi/swap/v2/trade/openOrder",
     "method": "GET",
     "payload": {
-        "timestamp": get_time
+        "orderId": "1736012449498123456",
+
+        "symbol": "DOT-USDT",
     },
     "protocol": "https"
 }

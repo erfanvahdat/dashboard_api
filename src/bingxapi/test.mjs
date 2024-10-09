@@ -1,9 +1,10 @@
 
 
 
-import data_filter from "./Balance_api.mjs";
+
+const  varz = 'ETH-USkjokT'
 
 
-console.log(data_filter.asset )
 
-                
+
+console.log(varz.includes('-USDT'))
