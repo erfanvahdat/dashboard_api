@@ -12,22 +12,12 @@ import User from '../mongoose/schemas/userschemas.mjs'
 import Balance from '../mongoose/schemas/Balanceschemas.mjs';
 
 
-
-import crypto_list_api from '../bingxapi/crypto_list_api.mjs';
-import Crypto_list from '../mongoose/schemas/cryptolistschemas.mjs';
+// import crypto_list_api from '../bingxapi/crypto_list_api.mjs';
+import Crypto_list_schemas from '../mongoose/schemas/cryptolistschemas.mjs';
 
 import { query ,body,validationResult,matchedData, checkSchema} from 'express-validator'; 
 
 const router = express.Router();
-
-
-let data= [
-  {id:1,name:'vahdi2'},
-  {id:2,name:'vahdi1'},
-  {id:3,name:'vahdi2'},
-  {id:4,name:'vahdi4'},
-]
-
 
 const Middleware = (req,res,next)=>{
   const {
@@ -125,8 +115,7 @@ router.get("/get_BA/",(req,res)=>{
     // const response = axios.get('http://localhost:3003/api/get_balance');
 
     
-    
-
+  
     
       return res.send({"data":balance_api.balance})
     
@@ -178,10 +167,8 @@ router.post('/crypto_list',(req,res)=>{
 
     crypto_list_api.forEach(element => {
 
-          // console.log(element)
-
-
-      const newcrpyot_list = new Crypto_list({
+          // console.log(element
+      const newcrpyot_list = new Crypto_list_schemas({
         symbol: element , 
     });
       
@@ -203,11 +190,10 @@ router.post('/crypto_list',(req,res)=>{
 });
 
 
-
 router.get('/crypto_list', async (req, res) => {
   try {
       // Fetch all documents from the Crypto_list collection
-      const cryptoData = await Crypto_list.find(); 
+      const cryptoData = await Crypto_list_schemas.find(); 
       res.status(200).send(cryptoData); // Send the data as a JSON response
   } catch (err) {
       console.error('Error fetching crypto list:', err);
@@ -220,7 +206,7 @@ router.get('/crypto_list', async (req, res) => {
 
 router.put('/change_object/:id',
     checkSchema(userSchema),  // Use the schema for validation
-    Middleware,
+    Middleware ,
     (req, res) => {
       // Validation results
       const result = validationResult(req);

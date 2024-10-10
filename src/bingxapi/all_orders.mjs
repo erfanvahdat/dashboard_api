@@ -1,27 +1,37 @@
 
+
+
+
+
+
 import axios from "axios";
 import dotenv from 'dotenv'; 
-import CryptoJS from "crypto-js";
 
+import CryptoJS from "crypto-js";
 
 // Load environment variables
 dotenv.config(); 
 
-
+// Set up API credentials and endpoint details
 const API_KEY = process.env.API_KEY;
 const API_SECRET = process.env.SECRET_KEY;
 
-
-
 const HOST = "open-api.bingx.com"
 const API = {
-    "uri": "/openApi/swap/v2/quote/contracts",
+    "uri": "/openApi/swap/v1/trade/fullOrder",
     "method": "GET",
-    "payload": {},
+    "payload": {
+        "endTime": "1702731995000",
+        "limit": "500",
+        "startTime": "1702688795000",
+
+        
+    },
     "protocol": "https"
 }
-
-
+async function main() {
+    await bingXOpenApiTest(API.protocol, HOST, API.uri, API.method, API_KEY, API_SECRET)
+}
 function getParameters(API, timestamp, urlEncode) {
     let parameters = ""
     for (const key in API.payload) {
@@ -40,7 +50,7 @@ function getParameters(API, timestamp, urlEncode) {
     return parameters
 }
 
-
+main().catch(console.err);
 async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRET) {
     const timestamp = new Date().getTime()
     const sign = CryptoJS.enc.Hex.stringify(CryptoJS.HmacSHA256(getParameters(API, timestamp), API_SECRET))
@@ -60,29 +70,12 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
         },
         transformResponse: (resp) => {
             
-            // console.log(resp); 
+            console.log(resp); 
             return resp;
         }
     };
     const resp = await axios(config);
     console.log(resp.status);
-    return resp    
+    console.log(JSON);
+    
 }
-
-
-export async function crpyto_list() {
-    try {
-        const crpyto_list =  await bingXOpenApiTest(API.protocol, HOST, API.uri, API.method, API_KEY, API_SECRET)
-
-        const parsedData = JSON.parse(crpyto_list.data);
-        const crpyto_list_filter = parsedData.data.filter(item =>item.symbol.includes('-USDT')).map(item=>item.symbol)
-
-        return crpyto_list_filter;  
-    } catch (error) {
-        console.error("Error exporting balance data:", error);
-        return null;  
-    }
-}
-
-
-export default crpyto_list;

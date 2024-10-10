@@ -81,6 +81,7 @@ export async function switch_leverage(symbol, leverage) {
 
 export default switch_leverage;
 
+
 // // Call the switch_leverage function with symbol and leverage
 // switch_leverage('DOT-USDT', '8').then(data => {
 //     console.log("Leverage switched, data received:", data);
