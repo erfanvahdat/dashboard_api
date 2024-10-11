@@ -89,8 +89,7 @@ async function all_open_orders() {
 }
 
 
-const   data = await all_open_orders()
+// const data = await all_open_orders()
 
-console.log(data )
-
-// export default all_open_orders;
+// console.log(data )
+export default all_open_orders;

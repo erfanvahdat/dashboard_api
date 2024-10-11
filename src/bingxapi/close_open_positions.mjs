@@ -15,12 +15,18 @@ const API_SECRET = process.env.SECRET_KEY;
 
 
 async function main(positionId) {
+
+    
+    const  id = BigInt(positionId)
+    const  id_str = id.toString()
+
+
     const HOST = "open-api.bingx.com";
     const API = {
         uri: "/openApi/swap/v1/trade/closePosition",
         method: "POST",
         payload: {
-            positionId: 1844383013878632400,
+            positionId: id_str,
         },
         protocol: "https"
     };
@@ -88,4 +94,8 @@ async function close_position_orders(positionId) {
 }
 
 // Test the function
-close_position_orders(1844376607545249800);
+// close_position_orders(1844632929297649700);
+
+export default close_position_orders;
+
+

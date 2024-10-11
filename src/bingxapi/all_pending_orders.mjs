@@ -3,6 +3,7 @@
 
 import axios from "axios";
 import dotenv from 'dotenv'; 
+
 import CryptoJS from "crypto-js";
 
 // Load environment variables
@@ -17,9 +18,11 @@ async function main() {
 
     const API = {           
         "uri": "/openApi/swap/v2/trade/openOrders",
+
         "method": "GET",
         "payload": {
-            "startTime": "1844381494924431400",
+            
+            // "startTime": "1702688795000",
         },
         "protocol": "https"
     };
@@ -66,7 +69,7 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
     try {
         const resp = await axios(config);
         console.log("Response Status:", resp.status);
-        
+
         return resp.data; // Return the response data
     } catch (error) {
         console.error("API call error:", error);
@@ -75,22 +78,41 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
 }
 
 // Function to run the API call and export the data
-async function all_pending_orders() {
+async function all_open_orders() {
     try {
         const open_orders = await main();
-        // Extract the 'orders' array from the response
-        const orders = open_orders.data.orders;
-        // console.log("Orders Data:", orders);
-        return orders;  
+        return open_orders.data.orders;  
     } catch (error) {
         console.error("Error exporting open orders:", error);
         return null;  
     }
 }
 
-const obj  = await all_pending_orders();
 
 
-// const data_filter = obj.filter(item=> item.type === 'TRIGGER_LIMIT')
-console.log(obj)
-// export default all_pending_orders;
+// const obj = await all_open_orders();
+
+
+
+export default all_open_orders;
+
+
+// const obj_filter = obj.filter(item => item.symbol === 'SAND-USDT');
+
+
+// console.log(obj_filter)
+
+
+// // Check if `obj` is an array
+// if (Array.isArray(obj)) {
+//     const obj_filter = obj.filter(item => item.symbol === 'SAND-USDT');
+
+//     // Check if any filtered results exist
+//     if (obj_filter.length > 0) {
+//         console.log(obj_filter[0].orderId);  // Log the orderId
+//     } else {
+//         console.log('No orders found for symbol: SAND-USDT');
+//     }
+// } else {
+//     console.error('The response from all_open_orders() is not an array:', obj);
+// }

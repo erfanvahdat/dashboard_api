@@ -10,12 +10,15 @@ import trade_order from "./trade_order.mjs";
 
 const orderParams = {
             symbol: 'SAND-USDT',
-            side: 'SELL',
-            positionside: 'SHORT',
+            // side: 'BUY',
+            // positionside: 'LONG',
+
+            type : 'LONG',
             risk: 1,
-            limitprice: 0.248687757152951,
-            slprice: 0.252574555996874,
-            tpprice: 0.240628535790201,
+            limitprice: 0.251489839221986,
+            slprice: 0.248029145119103,
+            tpprice: 0.253995569309945,
+            market :  "trigger"
         };
 
 // const data = await crpyto_list()

@@ -1,10 +1,10 @@
 import axios from "axios";
-import dotenv from 'dotenv'; 
+import dotenv from 'dotenv';
 import CryptoJS from "crypto-js";
 import switch_leverage from "./leverage_api.mjs";
 
 // Load environment variables
-dotenv.config(); 
+dotenv.config();
 
 // Set up API credentials and endpoint details
 const API_KEY = process.env.API_KEY;
@@ -15,22 +15,42 @@ const API_SECRET = process.env.SECRET_KEY;
 // open/sell SHORT: side=SELL & positionSide=SHORT
 // close/buy SHORT: side=BUY & positionSide=SHORT
 
-async function main(symbol, side, positionside, risk, limitprice, slprice, tpprice) {
+async function main(orderParams) {
+    const { symbol, type, risk, limitprice, slprice, tpprice, market } = orderParams;
+
+    const typeval = type.toString().toUpperCase();
+
+    let side = null;
+    let positionside = null;
+
+    let marketval = market.toString().toUpperCase();
+
+
+    if (marketval == "TRIGGER") {
+        marketval = "TRIGGER_MARKET";
+    }else if(marketval == "MARKET"){
+        marketval = "MARKET";
+    }
+
+    if (typeval === 'LONG') {
+        console.log(typeval);
+        positionside = "LONG";
+        side = "BUY";
+    } else if (typeval === 'SHORT') {
+        positionside = "SHORT";
+        side = "SELL";
+    } else {
+        console.log('\n Something is wrong with typeval');
+        return null;
+    }
+
     const symbolval = symbol;
-    
     const riskval = parseFloat(risk);
     const limitPriceval = parseFloat(limitprice);
     const slPriceval = parseFloat(slprice);
     const tpPriceval = parseFloat(tpprice);
     const val = 22;
 
-    if (positionside == "LONG") {
-        side = "BUY";
-    }
-    if (positionside == "SHORT") {
-        side = "SELL";
-    }
-    
     const diff = Math.abs((limitPriceval - slPriceval) / slPriceval);
     const marginLimit = riskval;
     const riskPercent = 50;
@@ -39,105 +59,90 @@ async function main(symbol, side, positionside, risk, limitprice, slprice, tppri
     const diffPercent = diff * 100;
     const leverage = riskPercent / diffPercent;
     const size = (res / limitPriceval) * leverage;
-    
-    const LV = switch_leverage(symbol, parseInt(leverage));
-    // co/sznsole.log(`we are here with leverage of : ${leverage}`);
+
+    const LV = await switch_leverage(symbol, parseInt(leverage));
 
 
     const HOST = "open-api.bingx.com";
 
     const API = {
-        "uri": "/openApi/swap/v2/trade/order",
-        "method": "POST",
-        "payload": {
-            "symbol": symbolval,
-            "side": side,
-            "positionSide": 'BOTH',
-            "type": "TRIGGER_LIMIT",
-            // "type": "MARKET",
-            "quantity": size,
-            "stopPrice": limitPriceval,
-            "price":limitPriceval
-                // "takeProfit": `{\"type\": \"TAKE_PROFIT_MARKET\", \"stopPrice\": ${limitPriceval},\"price\": ${limitPriceval},\"workingType\":\"MARK_PRICE\"}`
+        uri: "/openApi/swap/v2/trade/order",
+        method: "POST",
+        payload: {
+            symbol: symbolval,
+            side: side,
+            positionSide: "BOTH",
+            type: marketval,
+            // type: "TRIGGER_LIMIT",
+            quantity: size,
+            stopPrice: limitPriceval,
+            price: limitPriceval,
+            takeProfit: `{\"type\": \"TAKE_PROFIT_MARKET\", \"stopPrice\": ${tpPriceval},\"price\": ${tpPriceval},\"workingType\":\"MARK_PRICE\"}`,
+            stopLoss: `{\"type\": \"STOP_MARKET\", \"stopPrice\": ${slPriceval},\"price\": ${slPriceval},\"workingType\":\"MARK_PRICE\"}`,
         },
-        "protocol": "https"
+        protocol: "https"
     };
 
     await bingXOpenApiTest(API.protocol, HOST, API.uri, API.method, API_KEY, API_SECRET, API);
 }
 
-function getParameters(API, timestamp, urlEncode) {
+function getParameters(API, timestamp, urlEncode = false) {
     let parameters = "";
     for (const key in API.payload) {
         if (urlEncode) {
-            parameters += key + "=" + encodeURIComponent(API.payload[key]) + "&";
+            parameters += `${key}=${encodeURIComponent(API.payload[key])}&`;
         } else {
-            parameters += key + "=" + API.payload[key] + "&";
+            parameters += `${key}=${API.payload[key]}&`;
         }
     }
+
     if (parameters) {
-        parameters = parameters.substring(0, parameters.length - 1);
-        parameters = parameters + "&timestamp=" + timestamp;
+        parameters = parameters.slice(0, -1);
+        parameters += `&timestamp=${timestamp}`;
     } else {
-        parameters = "timestamp=" + timestamp;
+        parameters = `timestamp=${timestamp}`;
     }
     return parameters;
 }
 
 async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRET, API) {
     const timestamp = new Date().getTime();
-    const sign = CryptoJS.enc.Hex.stringify(CryptoJS.HmacSHA256(getParameters(API, timestamp), API_SECRET));
+    const signaturePayload = getParameters(API, timestamp);
+    const sign = CryptoJS.enc.Hex.stringify(CryptoJS.HmacSHA256(signaturePayload, API_SECRET));
     const url = `${protocol}://${host}${path}?${getParameters(API, timestamp, true)}&signature=${sign}`;
-    console.log("protocol:", protocol);
-    console.log("method:", method);
-    console.log("host:", host);
-    console.log("path:", path);
-    console.log("parameters:", getParameters(API, timestamp));
-    console.log("sign:", sign);
-    console.log(method, url);
-    
-    const config = {
-        method: method,
-        url: url,
-        headers: {
-            'X-BX-APIKEY': API_KEY,
-        },
-        transformResponse: (resp) => {
-            console.log(resp); 
-            return resp;
-        }
-    };
-    const resp = await axios(config);
-    console.log(resp.status);
+
+    try {
+        const config = {
+            method: method,
+            url: url,
+            headers: {
+                'X-BX-APIKEY': API_KEY,
+            },
+            transformResponse: (resp) => {
+
+                return resp;
+            }
+        };
+        const resp = await axios(config);
+        console.log("Response status:", resp.status);
+    } catch (error) {
+        console.error("Error during API request:", error);
+    }
 }
 
 // Function to run the API call and export the data
 async function trade_order(orderParams) {
     try {
-        // Destructure the object to get the parameters
-        const { symbol, side, positionside, risk, limitprice, slprice, tpprice } = orderParams;
-
-        // Example body (just for reference):
-        // const orderParams = {
-        //     symbol: 'GALA-USDT',
-        //     side: 'BUY',
-        //     positionside: 'LONG',
-        //     risk: 1,
-        //     limitprice: 0.020020901371653,
-        //     slprice: 0.019585628083838,
-        //     tpprice: 0.020514581675103,
-        // };
-
-        // Call the API with the destructured params
-        const Tradeorder = await main(symbol, side, positionside, risk, limitprice, slprice, tpprice);
-        return Tradeorder;  
+        // Call the API with the provided params
+        const tradeOrderResult = await main(orderParams);
+        return tradeOrderResult;
     } catch (error) {
-        console.error("Error exporting balance data:", error);
-        return null;  
+        console.error("Error executing trade order:", error);
+        return null;
     }
 }
 
-// Call the function by passing the entire object
+// Example usage: Call the function by passing the orderParams object
 // const data = await trade_order(orderParams);
 
-export default trade_order; 
+export default trade_order;
