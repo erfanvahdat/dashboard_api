@@ -13,19 +13,19 @@ const API_SECRET = process.env.SECRET_KEY;
 
 async function main(pending_id) {
 
-    
 
-    
-    const  id = BigInt(pending_id)
-    const  id_str = id.toString()
+
+
+    const id = BigInt(pending_id)
+    const id_str = id.toString()
     const HOST = "open-api.bingx.com";
     const API = {
         "uri": "/openApi/swap/v2/trade/order",
         method: "DELETE",
         "payload": {
-            "orderId": id_str ,
+            "orderId": id_str,
             "symbol": "SAND-USDT",
-            
+
         },
         protocol: "https"
     };
@@ -67,7 +67,7 @@ async function bingXOpenApiTest(API, host, method, API_KEY, API_SECRET) {
         },
 
         transformResponse: (resp) => {
-            
+
             return resp;
         }
     };
@@ -75,7 +75,6 @@ async function bingXOpenApiTest(API, host, method, API_KEY, API_SECRET) {
     try {
         const resp = await axios(config);
         console.log("Status:", resp.status);
-        console.log("Data:", resp.data);
         return resp.data;
     } catch (error) {
         console.error("Error with API request:", error);
@@ -85,15 +84,14 @@ async function bingXOpenApiTest(API, host, method, API_KEY, API_SECRET) {
 // Function to run the API call and export the data
 async function close_pending_orders(positionId) {
     try {
-        const response = await main(positionId); // Pass the positionId here
-
+        const response = await main(positionId); 
         return response;
     } catch (error) {
         console.error("Error exporting open orders:", error);
         return null;
     }
 }
-     
+
 // Test the function
 // close_position_orders(1844632929297649700);
 

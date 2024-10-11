@@ -9,7 +9,8 @@ import {
 import passport from 'passport';
 import mongoose from 'mongoose';
 import session from 'express-session';
-import router from './routes/router.mjs';
+
+import bingx_router from './routes/bingx.mjs';
 import swaggerJsDoc from 'swagger-jsdoc';
 import './strategies/local_stategies.mjs';
 import swaggerUi from 'swagger-ui-express';
@@ -107,7 +108,7 @@ app.post('/auth', passport.authenticate('local'), (req, res) => {
 
 // Auth Status Check  
 app.get('/auth/status', (req, res) => {
-  
+
   console.log('Checking authentication status');
   console.log(req.user);
   console.log(req.session);
@@ -116,7 +117,8 @@ app.get('/auth/status', (req, res) => {
 });
 
 // Use user router
-app.use('/api', router_user);
+// app.use('/api', router_user);
+app.use('/api', bingx_router)
 
 // Catch-all route for invalid URLs
 app.get('*', (req, res) => {

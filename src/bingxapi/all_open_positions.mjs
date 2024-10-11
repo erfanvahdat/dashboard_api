@@ -78,7 +78,7 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
 }
 
 // Function to run the API call and export the data
-async function all_open_orders() {
+async function all_positon_orders() {
     try {
         const open_orders = await main();
         return open_orders.data;  
@@ -92,4 +92,4 @@ async function all_open_orders() {
 // const data = await all_open_orders()
 
 // console.log(data )
-export default all_open_orders;
+export default all_positon_orders;
