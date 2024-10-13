@@ -2,27 +2,26 @@
 
 
 import axios from "axios";
-import dotenv from 'dotenv'; 
+import dotenv from 'dotenv';
 
 import CryptoJS from "crypto-js";
 
 // Load environment variables
-dotenv.config(); 
+dotenv.config();
 
 // Set up API credentials and endpoint details
 const API_KEY = process.env.API_KEY;
 const API_SECRET = process.env.SECRET_KEY;
 
+
 async function main() {
     const HOST = "open-api.bingx.com";
 
-    const API = {           
+    const API = {
         "uri": "/openApi/swap/v2/trade/openOrders",
 
         "method": "GET",
         "payload": {
-            
-            // "startTime": "1702688795000",
         },
         "protocol": "https"
     };
@@ -49,7 +48,7 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
     const timestamp = new Date().getTime();
     const sign = CryptoJS.enc.Hex.stringify(CryptoJS.HmacSHA256(getParameters(API, timestamp), API_SECRET));
     const url = `${protocol}://${host}${path}?${getParameters(API, timestamp, true)}&signature=${sign}`;
-    
+
     console.log("protocol:", protocol);
     console.log("method:", method);
     console.log("host:", host);
@@ -81,18 +80,16 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
 async function all_pending_orders() {
     try {
         const open_orders = await main();
-        return open_orders.data.orders;  
+        return open_orders.data.orders;
     } catch (error) {
         console.error("Error exporting open orders:", error);
-        return null;  
+        return null;
     }
 }
 
 
-
-// const obj = await all_open_orders();
-
-
+// const obj = await all_pending_orders();
+// console.log(obj)
 
 export default all_pending_orders;
 
@@ -100,7 +97,7 @@ export default all_pending_orders;
 // const obj_filter = obj.filter(item => item.symbol === 'SAND-USDT');
 
 
-// console.log(obj_filter)
+
 
 
 // // Check if `obj` is an array

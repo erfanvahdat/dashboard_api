@@ -69,7 +69,6 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
     return resp    
 }
 
-
 export async function crpyto_list() {
     try {
         const crpyto_list =  await bingXOpenApiTest(API.protocol, HOST, API.uri, API.method, API_KEY, API_SECRET)

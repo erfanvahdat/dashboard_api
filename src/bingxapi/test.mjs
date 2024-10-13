@@ -11,28 +11,28 @@ import all_pending_orders from "./all_pending_orders.mjs";
 import close_pending_orders from "./close_pending_orders.mjs";
 import close_position_orders from "./close_open_positions.mjs";
 
+import all_orders from "./all_orders.mjs";
 
 
 const orderParams = {
     symbol: 'SAND-USDT',
-    // side: 'BUY',
-    // positionside: 'LONG',
-
-    type: 'LONG',
+    type: 'SHORT',
     risk: 1,
-    limitprice: 0.251489839221986,
-    slprice: 0.248029145119103,
-    tpprice: 0.253995569309945,
+    limitprice: 0.265910933979571,
+    slprice: 0.269166714752397,
+    tpprice: 0.260753055012458,
     market: "trigger"
 };
 
 // const data = await crpyto_list()
-// const data = await trade_order(orderParams)
-// const data = await all_pending_orders()
+const obj = await trade_order(orderParams)
+// const obj = await all_pending_orders()
 // const data = await all_positon_orders()
-const data = await close_pending_orders(1844660245746831400)
+// const obj = await all_orders();
+// const data = await close_pending_orders1844660245746831400)
 
-console.log(data)
+console.log(obj)
+// console.log(Object.keys(data))
 
 // const data_filter = data.filter(item=> item.symbol === "GALA-USDT")
 // console.log(data_filter[0].orderId)

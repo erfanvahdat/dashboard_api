@@ -18,30 +18,40 @@ const API_SECRET = process.env.SECRET_KEY;
 async function main(orderParams) {
     const { symbol, type, risk, limitprice, slprice, tpprice, market } = orderParams;
 
+    // Check for missing required fields
+
+    if (!symbol || !type || !risk || !limitprice || !slprice || !tpprice || !market) {
+        console.error('Missing required parameters in orderParams');
+        // return { error: 'Missing required parameters', status: 400 };
+        console.log('we are here on error')
+        throw new Error("Missing required parameters")
+    }
+
+
     const typeval = type.toString().toUpperCase();
 
     let side = null;
     let positionside = null;
-
     let marketval = market.toString().toUpperCase();
-
 
     if (marketval == "TRIGGER") {
         marketval = "TRIGGER_MARKET";
-    }else if(marketval == "MARKET"){
+    } else if (marketval == "MARKET") {
         marketval = "MARKET";
+    } else {
+        console.error('Invalid market value');
+        return { error: 'Invalid market value', status: 400 };
     }
 
     if (typeval === 'LONG') {
-        console.log(typeval);
         positionside = "LONG";
         side = "BUY";
     } else if (typeval === 'SHORT') {
         positionside = "SHORT";
         side = "SELL";
     } else {
-        console.log('\n Something is wrong with typeval');
-        return null;
+        console.error('Invalid type value');
+        return { error: 'Invalid type value', status: 400 };
     }
 
     const symbolval = symbol;
@@ -60,8 +70,8 @@ async function main(orderParams) {
     const leverage = riskPercent / diffPercent;
     const size = (res / limitPriceval) * leverage;
 
+    // Call switch_leverage
     const LV = await switch_leverage(symbol, parseInt(leverage));
-
 
     const HOST = "open-api.bingx.com";
 
@@ -73,7 +83,6 @@ async function main(orderParams) {
             side: side,
             positionSide: "BOTH",
             type: marketval,
-            // type: "TRIGGER_LIMIT",
             quantity: size,
             stopPrice: limitPriceval,
             price: limitPriceval,
@@ -83,7 +92,7 @@ async function main(orderParams) {
         protocol: "https"
     };
 
-    await bingXOpenApiTest(API.protocol, HOST, API.uri, API.method, API_KEY, API_SECRET, API);
+    return await bingXOpenApiTest(API.protocol, HOST, API.uri, API.method, API_KEY, API_SECRET, API);
 }
 
 function getParameters(API, timestamp, urlEncode = false) {
@@ -113,8 +122,8 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
 
     try {
         const config = {
-            method: method,
-            url: url,
+            method,
+            url,
             headers: {
                 'X-BX-APIKEY': API_KEY,
             },
@@ -124,11 +133,19 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
             }
         };
         const resp = await axios(config);
-        console.log("Response status:", resp.status);
+
+        // const data = resp.data;
+
+        return await resp;
+
+        // console.log("Response status:", resp.status);
     } catch (error) {
         console.error("Error during API request:", error);
     }
 }
+
+
+
 
 // Function to run the API call and export the data
 async function trade_order(orderParams) {

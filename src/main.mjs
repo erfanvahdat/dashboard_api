@@ -10,6 +10,9 @@ import passport from 'passport';
 import mongoose from 'mongoose';
 import session from 'express-session';
 
+import cors from 'cors';
+
+
 import bingx_router from './routes/bingx.mjs';
 import swaggerJsDoc from 'swagger-jsdoc';
 import './strategies/local_stategies.mjs';
@@ -26,6 +29,16 @@ mongoose
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+
+
+// Enable CORS
+app.use(cors({
+  origin: 'http://localhost:5170', // Allow your Vue.js frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'access-control-allow-origin'], // Headers you allow
+  credentials: true // If you are using cookies or sessions
+}));
+
 
 // Swagger Api
 const swaggerOptions = {

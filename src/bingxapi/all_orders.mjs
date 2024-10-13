@@ -1,9 +1,9 @@
 import axios, { all } from "axios";
-import dotenv from 'dotenv'; 
+import dotenv from 'dotenv';
 import CryptoJS from "crypto-js";
 
 // Load environment variables
-dotenv.config(); 
+dotenv.config();
 
 // Set up API credentials and endpoint details
 const API_KEY = process.env.API_KEY;
@@ -47,7 +47,7 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
     const timestamp = new Date().getTime();
     const sign = CryptoJS.enc.Hex.stringify(CryptoJS.HmacSHA256(getParameters(API, timestamp), API_SECRET));
     const url = `${protocol}://${host}${path}?${getParameters(API, timestamp, true)}&signature=${sign}`;
-    
+
     console.log("Generated URL:", url);
 
     const config = {
@@ -57,27 +57,32 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
             'X-BX-APIKEY': API_KEY,
         }
     };
-    
+
     try {
         const resp = await axios(config);
         console.log("Status:", resp.status);
+
         return resp.data;  // Parse the response to convert it into a JS object
+
     } catch (error) {
         console.error("Error with API request:", error);
     }
 }
 
-async function get_all_orders() {
+async function all_orders() {
     const all_orders = await main();
     const orders = all_orders['data']['orders']
     return orders;
 }
 
-const obj = await get_all_orders();
+// const obj = await all_orders();
 
+export default all_orders;
+
+// console.log(obj)
 // Log only the orders in a pretty format
 // console.log(JSON.stringify(obj, null, 2));
-const obj_filter = obj.filter(item => item.symbol ==='SAND-USDT')
+// const obj_filter = obj.filter(item => item.symbol ==='SAND-USDT')
 // console.log(obj_filter[0].orderId)
 
-console.log(obj_filter[0].orderId)
+// console.log(obj_filter[0].orderId)
