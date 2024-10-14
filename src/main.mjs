@@ -1,4 +1,5 @@
 import express from 'express';
+import dotenv from 'dotenv';
 import {
   body,
   query,
@@ -12,7 +13,6 @@ import session from 'express-session';
 
 import cors from 'cors';
 
-
 import bingx_router from './routes/bingx.mjs';
 import swaggerJsDoc from 'swagger-jsdoc';
 import './strategies/local_stategies.mjs';
@@ -22,8 +22,11 @@ import router_user from './routes/users.mjs';
 
 const app = express();
 
+// importing router in .env file
+dotenv.config()
+
 mongoose
-  .connect('mongodb+srv://db01:fc98TpYumNA7IyNh@cluster0.ugagn.mongodb.net/USER')
+  .connect(process.env.CONNECT_DB)
   .then(() => console.log('Connect to MongoDB'))
   .catch((err) => console.log(`Error: ${err}`));
 
