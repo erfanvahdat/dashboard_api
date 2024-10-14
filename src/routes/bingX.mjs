@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 const router = express.Router();
 import axios from 'axios';
 
-
 // BingX importing modules
 import trade_order from '../bingxapi/trade_order.mjs';
 
@@ -20,17 +19,12 @@ import Crypto_list_model from '../mongoose/schemas/cryptolistschemas.mjs';
 
 dotenv.config({ path: '../.env' });  // Load environment variables
 
-
-
-
-
-
 // Get Crypto list from db
 router.get('/crypto_list', async (req, res) => {
     try {
         const obj = await crpyto_list();
 
-        return res.status(200).send( obj );
+        return res.status(200).send(obj);
 
     } catch (err) {
         console.log('Crypto_list does not work... ', err);
@@ -50,7 +44,7 @@ router.post('/crypto_list', async (req, res) => {
 
             // Fetch data from the external API
             const crypto_list_bingx = await axios.get('http://localhost:3005/api/crypto_list');
-            const newCryptoData = await crypto_list_bingx.data ;
+            const newCryptoData = await crypto_list_bingx.data;
 
             console.log('data is here....', newCryptoData)
 
@@ -62,11 +56,10 @@ router.post('/crypto_list', async (req, res) => {
                 newCryptoEntry.save();
             });
 
-
             // After saving, fetch the updated data from the DB
             const db_query_crypto_list = await Crypto_list_model.find();
             return res.status(201).send({ msg: "Data is updated", data: db_query_crypto_list });
-            
+
         } else {
             // If data exists, return the existing data from the database
             return res.status(200).send({ msg: "Data already exists", data: db_crypto_list });
@@ -76,9 +69,6 @@ router.post('/crypto_list', async (req, res) => {
         return res.status(400).json({ msg: 'Server error' });
     }
 });
-
-
-
 
 // Trade Order
 router.post('/trade_order', async (req, res) => {
@@ -110,7 +100,6 @@ router.get("/all_pending_orders", async (req, res) => {
     try {
 
         const obj = await all_pending_orders()
-
         return res.status(200).send({ msg: "Getting pending orders", data: obj })
     } catch (err) {
         console.log("Pending Orders functions does not working properly. ", err)

@@ -13,7 +13,6 @@ dotenv.config();
 const API_KEY = process.env.API_KEY;
 const API_SECRET = process.env.SECRET_KEY;
 
-
 async function main() {
     const HOST = "open-api.bingx.com";
 
@@ -86,7 +85,6 @@ async function all_pending_orders() {
         return null;
     }
 }
-
 
 // const obj = await all_pending_orders();
 // console.log(obj)
