@@ -25,8 +25,8 @@ const orderParams = {
 };
 
 // const data = await crpyto_list()
-const obj = await trade_order(orderParams)
-// const obj = await all_pending_orders()
+// const obj = await trade_order(orderParams)
+const obj = await all_pending_orders()
 // const data = await all_positon_orders()
 // const obj = await all_orders();
 // const data = await close_pending_orders1844660245746831400)

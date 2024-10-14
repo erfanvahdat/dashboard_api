@@ -11,7 +11,6 @@ import { hashpassword, comparepassword } from '../utils/hash.mjs';
 import User from '../mongoose/schemas/userschemas.mjs'
 import Balance from '../mongoose/schemas/Balanceschemas.mjs';
 
-
 // import crypto_list_api from '../bingxapi/crypto_list_api.mjs';
 import Crypto_list_schemas from '../mongoose/schemas/cryptolistschemas.mjs';
 
@@ -157,49 +156,6 @@ router.post('/balance', (req, res) => {
 });
 
 
-
-router.post('/crypto_list', (req, res) => {
-
-  try {
-    const { body } = req;
-
-
-
-
-    crypto_list_api.forEach(element => {
-
-      // console.log(element
-      const newcrpyot_list = new Crypto_list_schemas({
-        symbol: element,
-      });
-
-      newcrpyot_list.save();
-    });
-
-
-    // Check if all of body is healthy
-    // if (!newcrpyot_list) throw Error(err);
-
-
-    return res.status(201).send({ msg: `crypto_list is saved successfully`, });
-  } catch (err) {
-    console.log('something goes wrong... ', err)
-    return res.sendStatus(400);
-  }
-
-
-});
-
-router.get('/crypto_list', async (req, res) => {
-  try {
-    // Fetch all documents from the Crypto_list collection
-    const cryptoData = await Crypto_list_schemas.find();
-    res.status(200).send(cryptoData); // Send the data as a JSON response
-  } catch (err) {
-    console.error('Error fetching crypto list:', err);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
 
 // router.use(Middleware_2)
 
