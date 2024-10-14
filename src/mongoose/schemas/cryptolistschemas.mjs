@@ -13,6 +13,6 @@ const crypto_list_schemas = new  mongoose.Schema({
     
 })
 
-const Crypto_list_schemas=  mongoose.model('crypto_list',crypto_list_schemas)
+const Crypto_list_model  =  mongoose.model('crypto_list',crypto_list_schemas)
 
-export default Crypto_list_schemas;
+export default Crypto_list_model;
