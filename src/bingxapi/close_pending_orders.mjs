@@ -14,8 +14,6 @@ const API_SECRET = process.env.SECRET_KEY;
 async function main(pending_id) {
 
 
-
-
     const id = BigInt(pending_id)
     const id_str = id.toString()
     const HOST = "open-api.bingx.com";

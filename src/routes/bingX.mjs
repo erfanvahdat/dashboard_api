@@ -15,6 +15,12 @@ import close_position_orders from '../bingxapi/close_open_positions.mjs';
 import all_orders from '../bingxapi/all_orders.mjs';
 import crpyto_list from '../bingxapi/crypto_list_api.mjs';
 
+
+// import taskQueue from '../Task/queue.mjs';
+// import { Pending_position_status, Merging_data } from '../Task/Tasks.mjs';
+
+
+
 import Crypto_list_model from '../mongoose/schemas/cryptolistschemas.mjs';
 
 dotenv.config({ path: '../.env' });  // Load environment variables
@@ -31,6 +37,19 @@ router.get('/crypto_list', async (req, res) => {
         return res.status(500).send({ msg: 'Server error' });
     }
 });
+
+
+// router.get('/P_S', async (req, res) => {
+//     const job = await taskQueue.add('pending_position_status');
+//     return res.status(200).send(`Pending position status task enqueued: ${job.id}`);
+// });
+
+// // Route to enqueue the merging data task
+// router.post('/M_S', async (req, res) => {
+//     const job = await taskQueue.add('merging_data');
+//     res.status(200).send(`Merging data task enqueued: ${job.id}`);
+// });
+
 
 // Post the data into DB
 router.post('/crypto_list', async (req, res) => {
@@ -142,6 +161,7 @@ router.delete("/close_pending_orders", async (req, res) => {
         const ID = parseInt(body.orderId);
 
         const data = await close_pending_orders(ID);
+        // console.log(Object.keys(data))
         return res.status(200).send({ "msg": "Deleting Pending_order ", "data": data })
     } catch (err) {
 
@@ -157,6 +177,7 @@ router.delete("/close_position_orders", async (req, res) => {
         const ID = parseInt(body.orderId);
 
         const data = await close_position_orders(ID);
+
         return res.status(200).send({ "msg": "Deleting Position_order ", "data": data })
     } catch (err) {
 
@@ -169,3 +190,4 @@ const bingx_router = router;
 
 
 export default bingx_router;
+

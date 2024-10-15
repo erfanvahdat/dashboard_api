@@ -3,12 +3,7 @@
 import app from './main.mjs'; // Import the Express app from main.js
 import chalk from 'chalk'; // Optional: Use chalk for colored console outputs
 import dotenv from 'dotenv';
-
-
-
 dotenv.config({ path: '../.env' });
-
-
 
 // Start the server
 async function run_server() {
