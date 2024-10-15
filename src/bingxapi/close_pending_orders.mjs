@@ -69,7 +69,7 @@ async function bingXOpenApiTest(API, host, method, API_KEY, API_SECRET) {
         transformResponse: (resp) => {
 
             return resp;
-        }
+        },
     };
 
     try {
