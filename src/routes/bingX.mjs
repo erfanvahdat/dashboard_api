@@ -15,7 +15,12 @@ import close_pending_orders from '../bingxapi/close_pending_orders.mjs';
 import close_position_orders from '../bingxapi/close_open_positions.mjs';
 import all_orders from '../bingxapi/all_orders.mjs';
 import crpyto_list from '../bingxapi/crypto_list_api.mjs';
-import Trade_status from '../mongoose/schemas/trade_list.mjs';
+import Trade_status from '../mongoose/schemas/meta_data.mjs';
+import set_tp_sl from '../bingxapi/set_tp_sl.mjs';
+
+
+
+
 
 // import taskQueue from '../Task/queue.mjs';
 // import { Pending_position_status, Merging_data } from '../Task/Tasks.mjs';
@@ -38,19 +43,6 @@ router.get('/crypto_list', async (req, res) => {
         return res.status(500).send({ msg: 'Server error' });
     }
 });
-
-
-// router.get('/P_S', async (req, res) => {
-//     const job = await taskQueue.add('pending_position_status');
-//     return res.status(200).send(`Pending position status task enqueued: ${job.id}`);
-// });
-
-// // Route to enqueue the merging data task
-// router.post('/M_S', async (req, res) => {
-//     const job = await taskQueue.add('merging_data');
-//     res.status(200).send(`Merging data task enqueued: ${job.id}`);
-// });
-
 
 // Post the data into DB
 router.post('/crypto_list', async (req, res) => {
@@ -90,11 +82,66 @@ router.post('/crypto_list', async (req, res) => {
     }
 });
 
+
+// ------------------------------------------------------OPENING TRADES---------------------------------------------------------------------------------
+
 // Trade Order
 router.post('/trade_order', async (req, res) => {
     const { body } = req;
     try {
         const data = await trade_order(body);
+
+        if (data == null) {
+            console.log('Data is null');
+            return res.status(400).send({ msg :"No data found" });
+        }
+
+        // Return data directly in the response
+        return res.status(201).json({
+            msg: "Trade is Created...",
+            data: data.data
+        });
+
+    } catch (err) {
+        console.error('Trade order does not work properly:', err);
+        return res.status(500).send({ msg: 'Server error' });
+    }
+});
+
+
+// Trade Order
+router.post('/set_sl_tp', async (req, res) => {
+    const { body } = req;
+    try {
+
+        // Setting stop_loss and tp base on current Ticker
+        const find_user  = await Trade_status.findOne({symbol : body.symbol})
+
+
+        // stauts of setting stop or profit 
+        const status = body.status;
+        let  set_value  = null; 
+        
+        if(status == "TP"){
+            set_value = find_user.take_profit
+
+        }else if(status == "SL"){
+            set_value = find_user.stop_loss
+        }
+
+        
+        const meta_data_tp = {
+
+            "symbol": find_user.symbol,
+            "status": status,
+            "side":  find_user.side,
+            "positionSide": "BOTH",
+            "limitprice": parseFloat(find_user.limitprice),
+            "stopPrice": set_value ,
+            "quantity": parseFloat(find_user.quantity)
+        }
+
+        const data = await set_tp_sl(meta_data_tp);
 
         if (data == null) {
             console.log('Data is null');
@@ -113,6 +160,8 @@ router.post('/trade_order', async (req, res) => {
     }
 });
 
+
+// ------------------------------------------------------PENDING/POSITION STATUS----------------------------------------------------------------------------
 // All pending Orders
 router.get("/all_pending_orders", async (req, res) => {
 
@@ -188,8 +237,14 @@ router.delete("/close_position_orders", async (req, res) => {
 
 
 
-// Closing current Position
-router.get("/Trade_status", async (req, res) => {
+
+// ------------------------------------------------------Meta data Validation--------------------------------------------------------------------
+
+
+
+
+// get meta data of current
+router.post("/Trade_status/symbol", async (req, res) => {
 
     const { body } = req;
 
@@ -208,8 +263,6 @@ router.get("/Trade_status", async (req, res) => {
         res.sendStatus(400).send({ "msg": `Deleting method on clsoe Position does not working! \n ${err}` });
     }
 });
-
-// --------------------------------------------------------------------------------------------------------------------------
 
 // Saving meta data of current trade into db
 router.post("/Trade_status", async (req, res) => {
@@ -239,7 +292,13 @@ router.post("/Trade_status", async (req, res) => {
             const newTrade = new Trade_status({
                 symbol: body.symbol ,
                 stop_loss: body.stop_loss,
-                take_profit : body.take_profit });
+                take_profit : body.take_profit,
+                limitprice: body.limitprice,
+                quantity : body.quantity,
+                side: body.side,
+
+            
+            });
 
             await newTrade.save();
             return res.status(201).send({msg: "meta data is saved!" ,data : [newTrade] })
@@ -288,6 +347,7 @@ router.delete("/Trade_status/delete_all", async (req, res) => {
     try {
          
         const delete_all_res = await Trade_status.deleteMany();
+
 
         console.log(chalk.red("Table is Deleted entirely")) 
         return res.status(200).send({ msg: "Table is Deleted entirely" })
