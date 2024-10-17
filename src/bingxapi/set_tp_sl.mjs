@@ -42,7 +42,7 @@ async function main(orderParams) {
             "quantity": quantity ,
         
         },
-        protocol: "https"
+        protocol: "https",
     };
 
     return await bingXOpenApiTest(API.protocol, HOST, API.uri, API.method, API_KEY, API_SECRET, API);
