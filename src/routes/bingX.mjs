@@ -2,8 +2,9 @@
 
 import express, { response } from 'express';
 import dotenv from 'dotenv';
-const router = express.Router();
 import axios from 'axios';
+import chalk from 'chalk';
+const router = express.Router();
 
 // BingX importing modules
 import trade_order from '../bingxapi/trade_order.mjs';
@@ -14,7 +15,7 @@ import close_pending_orders from '../bingxapi/close_pending_orders.mjs';
 import close_position_orders from '../bingxapi/close_open_positions.mjs';
 import all_orders from '../bingxapi/all_orders.mjs';
 import crpyto_list from '../bingxapi/crypto_list_api.mjs';
-
+import Trade_status from '../mongoose/schemas/trade_list.mjs';
 
 // import taskQueue from '../Task/queue.mjs';
 // import { Pending_position_status, Merging_data } from '../Task/Tasks.mjs';
@@ -77,7 +78,7 @@ router.post('/crypto_list', async (req, res) => {
 
             // After saving, fetch the updated data from the DB
             const db_query_crypto_list = await Crypto_list_model.find();
-            return res.status(201).send({ msg: "Data is updated", data: db_query_crypto_list });
+            return res.status(201).send({ msg: "Data is- updated", data: db_query_crypto_list });
 
         } else {
             // If data exists, return the existing data from the database
@@ -184,6 +185,119 @@ router.delete("/close_position_orders", async (req, res) => {
         res.sendStatus(400).send({ "msg": `Deleting method on clsoe Position does not working! \n ${err}` });
     }
 });
+
+
+
+// Closing current Position
+router.get("/Trade_status", async (req, res) => {
+
+    const { body } = req;
+
+    try {
+        // Body symbol {params}
+        const symbol_name = body.symbol; 
+        const find_ticker =  await Trade_status.find({symbol: symbol_name})
+        
+        if (find_ticker.length == 0 || !find_ticker){
+            return res.status(400).send({ msg: "Table is empty!" ,data : find_ticker })    
+        }
+        return res.status(200).send({ msg: "meta data for the current trade" ,data : find_ticker })
+
+    } catch (err) {
+
+        res.sendStatus(400).send({ "msg": `Deleting method on clsoe Position does not working! \n ${err}` });
+    }
+});
+
+// --------------------------------------------------------------------------------------------------------------------------
+
+// Saving meta data of current trade into db
+router.post("/Trade_status", async (req, res) => {
+
+    const { body } = req;
+
+    try {
+
+        // first validation to check the symbol is USDT or not
+        if (body.symbol && !body.symbol.endsWith('-USDT')) {
+            return res.status(400).send({msg: "please Add the -USDT to the end of the symbol" })
+        }
+        // Validation to make sure the symbol is Uppercase
+        if (body.symbol !== body.symbol.toUpperCase()  ) {
+            return res.status(400).send({msg: "symbol from params is not Uppercase" })
+        }
+
+        // Check if the symbol already exists in the database
+        const existingTrade = await Trade_status.findOne({ symbol: body.symbol });
+
+        if(existingTrade || existingTrade!= null ){
+            console.log("Symbol already exists in the database");
+            return res.status(400).send({msg: "symbol already exist in the db" })
+        }else{
+
+            // Creating the new instance of meta data 
+            const newTrade = new Trade_status({
+                symbol: body.symbol ,
+                stop_loss: body.stop_loss,
+                take_profit : body.take_profit });
+
+            await newTrade.save();
+            return res.status(201).send({msg: "meta data is saved!" ,data : [newTrade] })
+        }
+
+    } catch (error) {
+        console.error("Error inserting or checking for duplicate symbol:", error.errorResponse  );
+        res.status(400).send("Internal server error");
+    }
+});
+
+// Delete per Symbol
+router.delete("/Trade_status/delete_symbol", async (req, res) => {
+
+    const { body } = req;
+    try {
+             
+
+        const delete_by_symbol  = await Trade_status.deleteOne({symbol : body.symbol  });
+
+        // find the meta data by symbol
+        const find_symbol_data  = await Trade_status.findOne({symbol : body.symbol  });
+
+        // symbol does not  exist
+        if (!find_symbol_data || find_symbol_data == null || find_symbol_data.array.length == 0  ) {
+            return res.status(400).send({msg: "symbol does not exist to remvoe it..." })
+        }
+        // incorrect way passing symbol param into deleting symbol from trades table
+        if (body.symbol && !body.symbol.endsWith('-USDT' ||  body.symbol !== body.symbol.toUpperCase()  )) {
+            return res.status(400).send({msg: "symbol isn't correct. fix the passing correct params to the endpoint" })
+        }
+
+        console.log(chalk.red(`Removing  ${body.symbol} from trades Table`))
+        return res.status(200).send({ msg: `${body.symbol} is removed from the trades Table` })
+    } catch (err) {
+
+        res.sendStatus(400).send({ "msg": `Deleting method by symbol does not working! \n ${err}` });
+    }
+});
+
+
+// Closing current Position
+router.delete("/Trade_status/delete_all", async (req, res) => {
+
+    const { body } = req;
+    try {
+         
+        const delete_all_res = await Trade_status.deleteMany();
+
+        console.log(chalk.red("Table is Deleted entirely")) 
+        return res.status(200).send({ msg: "Table is Deleted entirely" })
+    } catch (err) {
+
+        res.sendStatus(400).send({ "msg": `Deleting_all method does not working! \n ${err}` });
+    }
+});
+
+
 
 
 const bingx_router = router;
