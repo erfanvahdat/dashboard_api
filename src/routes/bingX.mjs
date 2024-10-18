@@ -117,7 +117,6 @@ router.post('/set_sl_tp', async (req, res) => {
         // Setting stop_loss and tp base on current Ticker
         const find_user  = await Trade_status.findOne({symbol : body.symbol})
 
-
         // stauts of setting stop or profit 
         const status = body.status;
         let  set_value  = null; 
@@ -135,6 +134,7 @@ router.post('/set_sl_tp', async (req, res) => {
             "symbol": find_user.symbol,
             "status": status,
             "side":  find_user.side,
+
             "positionSide": "BOTH",
             "limitprice": parseFloat(find_user.limitprice),
             "stopPrice": set_value ,
@@ -241,28 +241,30 @@ router.delete("/close_position_orders", async (req, res) => {
 // ------------------------------------------------------Meta data Validation--------------------------------------------------------------------
 
 
-
-
 // get meta data of current
-router.post("/Trade_status/symbol", async (req, res) => {
-
+router.post("/Trade_status/get_symbol", async (req, res) => {
     const { body } = req;
 
     try {
         // Body symbol {params}
         const symbol_name = body.symbol; 
-        const find_ticker =  await Trade_status.find({symbol: symbol_name})
         
-        if (find_ticker.length == 0 || !find_ticker){
-            return res.status(400).send({ msg: "Table is empty!" ,data : find_ticker })    
+        const find_ticker = await Trade_status.findOne({symbol: symbol_name});
+        
+        // Check if ticker was found
+        if (!find_ticker) {  // Fixing condition: findOne returns null if not found
+            return res.send(`Data(${symbol_name}) does not exist in DB!`)
         }
-        return res.status(200).send({ msg: "meta data for the current trade" ,data : find_ticker })
+
+        // If found, return the data
+        return res.status(200).send({ msg: "Data does exist", data: find_ticker });
 
     } catch (err) {
-
-        res.sendStatus(400).send({ "msg": `Deleting method on clsoe Position does not working! \n ${err}` });
+        // Fix: Do not chain `sendStatus(400)` with `.send()`
+        res.status(400).send({ msg: `Something went wrong while getting the symbol table! \n ${err}` });
     }
 });
+
 
 // Saving meta data of current trade into db
 router.post("/Trade_status", async (req, res) => {
@@ -311,33 +313,59 @@ router.post("/Trade_status", async (req, res) => {
 });
 
 // Delete per Symbol
+
+
 router.delete("/Trade_status/delete_symbol", async (req, res) => {
 
-    const { body } = req;
+
+    const { symbol } = req.query;  // Use query parameters
+
     try {
-             
-
-        const delete_by_symbol  = await Trade_status.deleteOne({symbol : body.symbol  });
-
+        
+        
         // find the meta data by symbol
-        const find_symbol_data  = await Trade_status.findOne({symbol : body.symbol  });
+        const find_symbol_data  = await Trade_status.findOne({symbol : symbol  });
+        
+        console.log(find_symbol_data)
 
-        // symbol does not  exist
-        if (!find_symbol_data || find_symbol_data == null || find_symbol_data.array.length == 0  ) {
-            return res.status(400).send({msg: "symbol does not exist to remvoe it..." })
+        //   symbol does not  exist
+        if (!find_symbol_data || find_symbol_data == null || find_symbol_data.length == 0  ) {
+            return res.status(200).send( "symbol does not exist to remvoe it..." )
         }
         // incorrect way passing symbol param into deleting symbol from trades table
-        if (body.symbol && !body.symbol.endsWith('-USDT' ||  body.symbol !== body.symbol.toUpperCase()  )) {
-            return res.status(400).send({msg: "symbol isn't correct. fix the passing correct params to the endpoint" })
+        if (symbol && !symbol.endsWith('-USDT') ||  symbol !== symbol.toUpperCase()  ) {
+            return res.status(200).send( "symbol isn't correct. fix the passing correct params to the endpoint" )
         }
 
-        console.log(chalk.red(`Removing  ${body.symbol} from trades Table`))
-        return res.status(200).send({ msg: `${body.symbol} is removed from the trades Table` })
+        
+        //  delete the symbol table 
+        const delete_by_symbol  = await Trade_status.deleteOne({ symbol : symbol  });
+
+        console.log(chalk.red(`Removing  ${symbol} from trades Table`))
+        return res.status(200).send({ msg: `${symbol} is removed from the trades Table` })
     } catch (err) {
 
-        res.sendStatus(400).send({ "msg": `Deleting method by symbol does not working! \n ${err}` });
-    }
-});
+        res.status(400).send({ "msg": `Deleting method by symbol does not working! \n ${err}` });
+
+    }});
+
+
+
+// router.delete("/Trade_status/delete_symbol", async (req, res) => {
+
+//     const { body } = req;
+
+//     try {
+             
+//         console.log(body)
+// // delete symbol
+//         const delete_by_symbol  = await Trade_status.deleteOne({ symbol : symbol  });
+
+
+
+//       
+//     }
+// });
 
 
 // Closing current Position
