@@ -9,14 +9,23 @@ dotenv.config();
 const API_KEY = process.env.API_KEY;
 const API_SECRET = process.env.SECRET_KEY;
 
+// current datetime
+const now = new Date().getTime();
+
+//  Five days ago
+const fiveDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+
+const starttime  =  fiveDaysAgo.getTime();
+const  endtime  = now;
+
 const HOST = "open-api.bingx.com";
 const API = {
     "uri": "/openApi/swap/v1/trade/fullOrder",
     "method": "GET",
     "payload": {
-        "endTime": "1702731995000",
+        "endTime": endtime,
         "limit": "500",
-        "startTime": "1702688795000",
+        "startTime": starttime,
     },
     "protocol": "https"
 };
@@ -61,8 +70,10 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
     try {
         const resp = await axios(config);
         console.log("Status:", resp.status);
+        // const json_parse_res = JSON.parse(resp.data)
 
-        return resp.data;  // Parse the response to convert it into a JS object
+        // console.log()
+        return resp.data;
 
     } catch (error) {
         console.error("Error with API request:", error);
@@ -78,11 +89,3 @@ async function all_orders() {
 // const obj = await all_orders();
 
 export default all_orders;
-
-// console.log(obj)
-// Log only the orders in a pretty format
-// console.log(JSON.stringify(obj, null, 2));
-// const obj_filter = obj.filter(item => item.symbol ==='SAND-USDT')
-// console.log(obj_filter[0].orderId)
-
-// console.log(obj_filter[0].orderId)
