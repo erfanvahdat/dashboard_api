@@ -8,25 +8,17 @@ const router = express.Router();
 
 // BingX importing modules
 import trade_order from '../bingxapi/trade_order.mjs';
-
 import all_positon_orders from '../bingxapi/all_open_positions.mjs';
 import all_pending_orders from '../bingxapi/all_pending_orders.mjs';
 import close_pending_orders from '../bingxapi/close_pending_orders.mjs';
 import close_position_orders from '../bingxapi/close_open_positions.mjs';
-import all_orders from '../bingxapi/all_orders.mjs';
+import Trade_history from '../bingxapi/trade_history.mjs';
 import crpyto_list from '../bingxapi/crypto_list_api.mjs';
 import Trade_status from '../mongoose/schemas/meta_data.mjs';
 import set_tp_sl from '../bingxapi/set_tp_sl.mjs';
 
-
-
-
-
-// import taskQueue from '../Task/queue.mjs';
-// import { Pending_position_status, Merging_data } from '../Task/Tasks.mjs';
-
-
-
+// improt relevent schemas
+import trade_history_model from '../mongoose/schemas/trade_historyschemas.mjs';
 import Crypto_list_model from '../mongoose/schemas/cryptolistschemas.mjs';
 
 dotenv.config({ path: '../.env' });  // Load environment variables
@@ -117,6 +109,11 @@ router.post('/set_sl_tp', async (req, res) => {
         // Setting stop_loss and tp base on current Ticker
         const find_user  = await Trade_status.findOne({symbol : body.symbol})
 
+        if (find_user == null  || !find_user){
+            return res.status(200).send("Becareful because the current postion does not have any stop_loss meta data. ");
+        }
+        
+
         // stauts of setting stop or profit 
         const status = body.status;
         let  set_value  = null; 
@@ -176,18 +173,18 @@ router.get("/all_pending_orders", async (req, res) => {
 });
 
 
-// All Orders
-router.get("/full_order", async (req, res) => {
+// // All Orders
+// router.get("/full_order", async (req, res) => {
 
-    const { body } = req;
-    try {
+//     const { body } = req;
+//     try {
 
-        const data = await all_orders()
-        return res.status(200).send({ "msg": "Full_orders", "data": data })
-    } catch (err) {
-        console.log("gettign All Orders functions does not working properly. ", err)
-    }
-});
+//         const data = await all_orders()
+//         return res.status(200).send({ "msg": "Full_orders", "data": data })
+//     } catch (err) {
+//         console.log("gettign All Orders functions does not working properly. ", err)
+//     }
+// });
 
 // All open Position
 router.get("/all_open_position", async (req, res) => {
@@ -236,9 +233,57 @@ router.delete("/close_position_orders", async (req, res) => {
 });
 
 
-
-
+// ----------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------Meta data Validation--------------------------------------------------------------------
+
+// Trade_history
+router.get("/record_trade_history", async (req, res) => {
+    
+    // Trade_history of last 7 days => {bingx api does not provide more than 7 days of perpetual trade_history}
+    const trade_history = await Trade_history();
+
+    if ( trade_history.lengh ==0  || !trade_history){
+        return res.status(200).send('Trade_history api endpoint is borken, please check the api router again..')
+    }
+    const mapped_obj = trade_history.filter(item=> item.status == "FILLED" && parseFloat(item.profit) !== 0.0  )
+    
+    console.log(chalk.blue("processing the Trade_history..."))
+    
+    mapped_obj.forEach(async element => {
+        try {
+            const existingRecord = await trade_history_model.findOne({ orderId: parseFloat(element.orderId) });
+    
+            // Trade does already Exist!
+            if (existingRecord) {
+                // console.log(`Order with orderId ${element.orderId} already exists. Skipping...`);
+                return;
+            }
+    
+            const new_trade_history_record = new trade_history_model({
+                symbol: element.symbol,
+                orderId: element.orderId,
+                side: element.side,
+                profit : element.profit,
+                type: element.type,
+                price: element.price,
+                time: element.time,
+                leverage: element.leverage
+            });
+    
+            // Save the new record to the database
+            await new_trade_history_record.save();
+    
+
+        
+        } catch (err) {
+            console.error(`Error saving trade history: ${err.message}`);
+        }
+    });
+
+    console.log(chalk.green("Trade_History Table is updated"))
+    
+    
+});
 
 
 // get meta data of current
@@ -248,7 +293,6 @@ router.post("/Trade_status/get_symbol", async (req, res) => {
     try {
         // Body symbol {params}
         const symbol_name = body.symbol; 
-        
         const find_ticker = await Trade_status.findOne({symbol: symbol_name});
         
         // Check if ticker was found
@@ -299,7 +343,6 @@ router.post("/Trade_status", async (req, res) => {
                 quantity : body.quantity,
                 side: body.side,
 
-            
             });
 
             await newTrade.save();
@@ -312,9 +355,7 @@ router.post("/Trade_status", async (req, res) => {
     }
 });
 
-// Delete per Symbol
-
-
+//  Deleting symbol table
 router.delete("/Trade_status/delete_symbol", async (req, res) => {
 
 
@@ -349,25 +390,6 @@ router.delete("/Trade_status/delete_symbol", async (req, res) => {
 
     }});
 
-
-
-// router.delete("/Trade_status/delete_symbol", async (req, res) => {
-
-//     const { body } = req;
-
-//     try {
-             
-//         console.log(body)
-// // delete symbol
-//         const delete_by_symbol  = await Trade_status.deleteOne({ symbol : symbol  });
-
-
-
-//       
-//     }
-// });
-
-
 // Closing current Position
 router.delete("/Trade_status/delete_all", async (req, res) => {
 
@@ -385,6 +407,11 @@ router.delete("/Trade_status/delete_all", async (req, res) => {
     }
 });
 
+
+
+setInterval(() => {
+    
+}, 10000);
 
 
 
