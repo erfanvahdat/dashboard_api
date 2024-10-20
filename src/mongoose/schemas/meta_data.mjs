@@ -20,6 +20,24 @@ const Trade = new  mongoose.Schema({
             require :true,
             unique: false
     },
+
+    limitprice : {
+        type:mongoose.Schema.Types.String,
+            require :true,
+            unique: false
+        
+    },
+    quantity : {
+        type:mongoose.Schema.Types.String,
+            require :true,
+            unique: false
+    },
+    side : {
+        type:mongoose.Schema.Types.String,
+            require :true,
+            unique: false
+        
+    }
     
 })
 
