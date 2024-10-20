@@ -49,6 +49,6 @@ const perp_history = new  mongoose.Schema({
     
 })
 
-const Trade_history  =  mongoose.model('Trade_history',perp_history)
+const trade_history_model  =  mongoose.model('Trade_history',perp_history)
 
-export default Trade_history;
+export default trade_history_model;
