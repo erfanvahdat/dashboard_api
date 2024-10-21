@@ -1,36 +1,24 @@
 
+import mongoose from "mongoose";
 
-import mongoose, { mongo } from "mongoose";
-
-const balanceSchema = new  mongoose.Schema({
-
-    userid:{
+const balanceSchema = new mongoose.Schema({
+    balance: {
         type: mongoose.Schema.Types.String,
-        require:true,
-        unique: false,
-    },
-    balance:{
-        type:mongoose.Schema.Types.String,
-        require :true,
-        unique: false,
-        
+        required: true,
+        unique: true,
     },
     equity: {
         type: mongoose.Schema.Types.String,
-        require:true,
-        unique: false,
-    
+        required: true, 
+        unique: true,
     },
-    asset:{
-        type:mongoose.Schema.Types.String,
-        require :true,
+    asset: {
+        type: mongoose.Schema.Types.String,
+        required: true, 
         unique: false,
-        
     },
-    
-})
+}, { timestamps: true }); 
 
-const Balance=  mongoose.model('Balance',balanceSchema)
+const Balance_model = mongoose.model('Balance', balanceSchema);
 
-export default Balance;
-
+export default Balance_model;
