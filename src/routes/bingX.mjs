@@ -74,7 +74,7 @@ router.post('/crypto_list', async (req, res) => {
     }
 });
 
-
+// ----------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------OPENING TRADES---------------------------------------------------------------------------------
 
 // Trade Order
@@ -157,8 +157,9 @@ router.post('/set_sl_tp', async (req, res) => {
     }
 });
 
-
+// ----------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------PENDING/POSITION STATUS----------------------------------------------------------------------------
+
 // All pending Orders
 router.get("/all_pending_orders", async (req, res) => {
 
@@ -236,7 +237,8 @@ router.delete("/close_position_orders", async (req, res) => {
 // ----------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------Meta data Validation--------------------------------------------------------------------
 
-// Trade_history
+
+// record_trade_history
 router.get("/record_trade_history", async (req, res) => {
     
     // Trade_history of last 7 days => {bingx api does not provide more than 7 days of perpetual trade_history}
@@ -272,7 +274,6 @@ router.get("/record_trade_history", async (req, res) => {
     
             // Save the new record to the database
             await new_trade_history_record.save();
-    
 
         
         } catch (err) {
@@ -280,10 +281,26 @@ router.get("/record_trade_history", async (req, res) => {
         }
     });
 
-    console.log(chalk.green("Trade_History Table is updated"))
-    
-    
+    console.log(chalk.green("Trade_History Table is updated"))    
 });
+
+// get_trade_history from  db
+router.get("/trade_history/all", async (req, res) => {
+    
+    try{
+
+        const Trade_history = await trade_history_model.find();
+
+        if(! Trade_history || Trade_history == null){
+            return res.status(200).send("Trade history is empty, please check the db")
+        }
+        
+        return res.status(200).send( Trade_history)
+
+        } catch (err) {
+            console.error(`Error saving trade history: ${err.message}`);
+        }
+    });
 
 
 // get meta data of current
