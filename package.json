@@ -175,9 +175,14 @@
     "xtend": "^4.0.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+    "all": "concurrently  \"nodemon ./src/server.mjs\" \"npm run dev --prefix D:/Work/java_script/dashboard_vue\" "
+
+},
+
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
 }
