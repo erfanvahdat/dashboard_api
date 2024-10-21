@@ -20,6 +20,11 @@ const perp_history = new  mongoose.Schema({
             require :true,
             unique: false
     },
+    profit : {
+        type:mongoose.Schema.Types.Number,
+            require :true,
+            unique: false
+    },
 
     type : {
         type:mongoose.Schema.Types.String,
@@ -33,13 +38,13 @@ const perp_history = new  mongoose.Schema({
             unique: false
     },
     time : {
-        type:mongoose.Schema.Types.String,
+        type:mongoose.Schema.Types.Number,
             require :true,
             unique: false
         
     },
     leverage : {
-        type:mongoose.Schema.Types.Number,
+        type:mongoose.Schema.Types.String,
             require :true,
             unique: false
         

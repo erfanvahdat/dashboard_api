@@ -180,7 +180,7 @@ app.post("/save_balance_db",  async (req, res) => {
   
     if( await Balance_model.findOne({ balance : body.balance }) ||
        await Balance_model.findOne({ equity : body.equity }) ){
-      return res.status(400).send({msg: "data is already exist in the db" })
+      return res.status(200).send({msg: "data is already exist in the db" })
 
     }
     

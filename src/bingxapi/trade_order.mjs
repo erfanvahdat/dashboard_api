@@ -144,9 +144,6 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
     }
 }
 
-
-
-
 // Function to run the API call and export the data
 async function trade_order(orderParams) {
     try {
