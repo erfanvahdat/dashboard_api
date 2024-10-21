@@ -17,8 +17,11 @@ import bingx_router from './routes/bingx.mjs';
 import swaggerJsDoc from 'swagger-jsdoc';
 import './strategies/local_stategies.mjs';
 import swaggerUi from 'swagger-ui-express';
-import router_user from './routes/users.mjs';
-// import syncDatabase from '../database/db.mjs'; // Ensure database connection
+// import router_user from './routes/users.mjs';
+import Balance from './bingxapi/Balance.mjs';
+
+// Imporintg DB models
+import Balance_model from './mongoose/schemas/Balanceschemas.mjs';
 
 const app = express();
 
@@ -87,6 +90,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.set('view engine', 'pug');
 app.set('views', '../views');
 
+
 // Home route
 app.get('/', async (req, res) => {
   // Uncomment if needed for session usage
@@ -135,6 +139,67 @@ app.get('/auth/status', (req, res) => {
 // Use user router
 // app.use('/api', router_user);
 app.use('/api', bingx_router)
+
+
+// Balance of current API Acccount
+app.get("/get_balance",  async (req, res) => {
+  try {
+    
+    const balance = await Balance() ;
+
+    if( !balance || balance == null){
+      return res.send('balance endpoint is borken')
+    }
+
+    const balance_api = balance.data.find(item => item.asset === 'USDT')
+    
+    return res.send({msg:'Balance_user' , data : balance_api })
+    
+  } catch (err) {
+    console.log(err);
+  }
+
+});
+
+
+app.post("/save_balance_db",  async (req, res) => {
+  try {
+    
+    const { body } = req;
+
+    // const balance = await Balance() ;
+
+    const db_querry =  await Balance_model.find()
+    
+
+    
+    if( !db_querry || db_querry == null){
+      return res.send('Querry to balace Table does not reach')
+    }
+
+  
+    if( await Balance_model.findOne({ balance : body.balance }) ||
+       await Balance_model.findOne({ equity : body.equity }) ){
+      return res.status(400).send({msg: "data is already exist in the db" })
+
+    }
+    
+    const new_att  = new Balance_model({
+      
+      "balance": body.balance,
+      "equity": body.equity,
+      "asset": body.asset
+    })
+
+    await new_att.save()
+
+    return res.sendStatus(200)
+  } catch (err) {
+    console.log(err);
+  }
+
+});
+
 
 // Catch-all route for invalid URLs
 app.get('*', (req, res) => {
