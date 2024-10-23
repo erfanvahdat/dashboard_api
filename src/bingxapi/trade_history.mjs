@@ -86,7 +86,8 @@ async function Trade_history() {
     return orders;
 }
 
-// const obj = await Trade_history();
-// console.log(obj)
+const obj = await Trade_history();
+// console.log(obj.filter(item=> item.status == 'FILLED'))
 
 export default Trade_history;
+                
