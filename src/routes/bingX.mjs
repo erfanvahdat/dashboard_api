@@ -14,7 +14,7 @@ import close_pending_orders from '../bingxapi/close_pending_orders.mjs';
 import close_position_orders from '../bingxapi/close_open_positions.mjs';
 import Trade_history from '../bingxapi/trade_history.mjs';
 import crpyto_list from '../bingxapi/crypto_list_api.mjs';
-import Trade_status from '../mongoose/schemas/meta_data.mjs';
+import Trade_status from '../mongoose/schemas/Trade_status.mjs';
 import set_tp_sl from '../bingxapi/set_tp_sl.mjs';
 
 // improt relevent schemas
@@ -37,7 +37,7 @@ router.get('/crypto_list', async (req, res) => {
 });
 
 // Post the data into DB
-router.post('/crypto_list', async (req, res) => {
+router.post('/crypto_list', async   (req, res) => {
     const { body } = req;
 
     try {
@@ -105,55 +105,62 @@ router.post('/trade_order', async (req, res) => {
 router.post('/set_sl_tp', async (req, res) => {
     const { body } = req;
     try {
-
+       // stauts of setting stop or profit 
+       const status = body.status;
+       let  set_value  = null; 
+       
         // Setting stop_loss and tp base on current Ticker
-        const find_user  = await Trade_status.findOne({symbol : body.symbol})
+        const find_trade  = await Trade_status.findOne({symbol : body.symbol})
 
-        if (find_user == null  || !find_user){
-            return res.status(200).send("Becareful because the current postion does not have any stop_loss meta data. ");
+        if (find_trade == null  || !find_trade){
+            return res.status(200).send({msg : `Meta data of the current Trade with symbol(${symbol}) is not availble.`,code : 'RED' });
         }
-        
+          
+ 
+        if(status == "SL" &&  find_trade['stop_loss'] ==undefined){
+            return res.status(200).send({msg : "Stop_loss is not availalbe",code : 'RED' });
+        }
 
-        // stauts of setting stop or profit 
-        const status = body.status;
-        let  set_value  = null; 
-        
+        if(status == "TP" &&  find_trade['take_profit'] ==undefined){
+            return res.status(200).send({msg : "Take_profit is not availalbe",code : 'RED' });
+        }
+
         if(status == "TP"){
-            set_value = find_user.take_profit
+            set_value = find_trade.take_profit
 
         }else if(status == "SL"){
-            set_value = find_user.stop_loss
+            set_value = find_trade.stop_loss
         }
 
-        
         const meta_data_tp = {
 
-            "symbol": find_user.symbol,
+            "symbol": find_trade.symbol,
             "status": status,
-            "side":  find_user.side,
+            "side":  find_trade.side,
 
             "positionSide": "BOTH",
-            "limitprice": parseFloat(find_user.limitprice),
+            "limitprice": parseFloat(find_trade.limitprice),
             "stopPrice": set_value ,
-            "quantity": parseFloat(find_user.quantity)
+            "quantity": parseFloat(find_trade.quantity)
         }
+
 
         const data = await set_tp_sl(meta_data_tp);
 
-        if (data == null) {
+        if (data == null || !data) {
             console.log('Data is null');
-            return res.status(400).send({ msg: 'No data found' });
+            return res.status(200).send({ msg: 'No data found', code : "NULL" });
         }
 
         // Return data directly in the response
-        return res.status(201).json({
-            msg: "Trade is Created...",
-            data: data.data
+        return res.status(201).send({
+            msg: `${status} has updated for ${find_trade.symbol}...`,
+            code : "GREEN"
         });
 
     } catch (err) {
         console.error('Trade order does not work properly:', err);
-        return res.status(500).send({ msg: 'Server error' });
+        return res.status(500).send({ msg: 'Server error' ,code : 400});
     }
 });
 
@@ -239,7 +246,7 @@ router.delete("/close_position_orders", async (req, res) => {
 
 
 // record_trade_history
-router.get("/record_trade_history", async (req, res) => {
+router.get("/update_trade_history", async (req, res) => {
     
     // Trade_history of last 7 days => {bingx api does not provide more than 7 days of perpetual trade_history}
     const trade_history = await Trade_history();
@@ -247,7 +254,9 @@ router.get("/record_trade_history", async (req, res) => {
     if ( trade_history.lengh ==0  || !trade_history){
         return res.status(200).send('Trade_history api endpoint is borken, please check the api router again..')
     }
-    const mapped_obj = trade_history.filter(item=> item.status == "FILLED" && parseFloat(item.profit) !== 0.0  )
+    const res_filter = trade_history.filter(item=> item.status == "FILLED" && parseFloat(item.profit) !== 0.0  )
+
+    const mapped_obj = res_filter.sort((a, b) => b.time - a.time);
     
     console.log(chalk.blue("processing the Trade_history..."))
     
@@ -258,7 +267,7 @@ router.get("/record_trade_history", async (req, res) => {
             // Trade does already Exist!
             if (existingRecord) {
                 // console.log(`Order with orderId ${element.orderId} already exists. Skipping...`);
-                return;
+                return res.status(200).send("trade_history record already exist...")
             }
     
             const new_trade_history_record = new trade_history_model({
@@ -282,9 +291,10 @@ router.get("/record_trade_history", async (req, res) => {
     });
 
     console.log(chalk.green("Trade_History Table is updated"))    
+    return res.status(200).send("Trade_History Table is updated...")
 });
 
-// get_trade_history from  db
+// get_trade_history from db
 router.get("/trade_history/all", async (req, res) => {
     
     try{
@@ -303,7 +313,7 @@ router.get("/trade_history/all", async (req, res) => {
     });
 
 
-// get meta data of current
+// get meta data of current trade
 router.post("/Trade_status/get_symbol", async (req, res) => {
     const { body } = req;
 
@@ -433,7 +443,6 @@ setInterval(() => {
 
 
 const bingx_router = router;
-
 
 export default bingx_router;
 
