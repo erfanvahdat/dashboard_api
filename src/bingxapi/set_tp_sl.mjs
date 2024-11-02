@@ -91,12 +91,10 @@ async function bingXOpenApiTest(protocol, host, path, method, API_KEY, API_SECRE
 
         return await resp;
 
-        // console.log("Response status:", resp.status);
     } catch (error) {
         console.error("Error during API request:", error);
     }
 }
-
 
 // Function to run the API call and export the data
 async function set_tp_sl(orderParams) {

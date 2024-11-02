@@ -10,14 +10,14 @@ import {
 import passport from 'passport';
 import mongoose from 'mongoose';
 import session from 'express-session';
-
+import chalk from 'chalk';
 import cors from 'cors';
 
 import bingx_router from './routes/bingx.mjs';
 import swaggerJsDoc from 'swagger-jsdoc';
 import './strategies/local_stategies.mjs';
 import swaggerUi from 'swagger-ui-express';
-// import router_user from './routes/users.mjs';
+// import router_user from './routes/users.mjs';-
 import Balance from './bingxapi/Balance.mjs';
 
 // Imporintg DB models
@@ -141,6 +141,8 @@ app.get('/auth/status', (req, res) => {
 app.use('/api', bingx_router)
 
 
+// ----------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------ Balance accoutn Querry ----------------------------------------------------------------------------
 // Balance of current API Acccount
 app.get("/get_balance",  async (req, res) => {
   try {
@@ -150,7 +152,7 @@ app.get("/get_balance",  async (req, res) => {
     if( !balance || balance == null){
       return res.send('balance endpoint is borken')
     }
-
+    // Filter the data which contain the USDT values
     const balance_api = balance.data.find(item => item.asset === 'USDT')
     
     return res.send({msg:'Balance_user' , data : balance_api })
@@ -162,6 +164,7 @@ app.get("/get_balance",  async (req, res) => {
 });
 
 
+
 app.post("/save_balance_db",  async (req, res) => {
   try {
     
@@ -171,29 +174,45 @@ app.post("/save_balance_db",  async (req, res) => {
 
     const db_querry =  await Balance_model.find()
     
-
-    
     if( !db_querry || db_querry == null){
       return res.send('Querry to balace Table does not reach')
     }
-
   
     if( await Balance_model.findOne({ balance : body.balance }) ||
        await Balance_model.findOne({ equity : body.equity }) ){
-      return res.status(200).send({msg: "data is already exist in the db" })
+      return res.send({msg: "data is already exist in the db" })
 
     }
     
     const new_att  = new Balance_model({
-      
       "balance": body.balance,
       "equity": body.equity,
       "asset": body.asset
     })
 
+    console.log(chalk.green('Updating Balance is Done'))
     await new_att.save()
 
-    return res.sendStatus(200)
+    return res.status(200).send('Updating Balance is Done')
+  } catch (err) {
+    console.log(err);
+  }
+
+});
+
+
+// Balance of current API Acccount
+app.get("/get_balance_db",  async (req, res) => {
+  try {
+    
+    const balance = await Balance_model.find() ;
+
+    if( !balance || balance == null){
+      return res.send('balance endpoint is borken')
+    }
+  
+    return res.send({msg:'Balance_user_DB' , data : balance })
+    
   } catch (err) {
     console.log(err);
   }

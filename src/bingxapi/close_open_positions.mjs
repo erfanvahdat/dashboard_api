@@ -12,8 +12,6 @@ const API_KEY = process.env.API_KEY;
 const API_SECRET = process.env.SECRET_KEY;
 
 
-
-
 async function main(positionId) {
 
 

@@ -9,6 +9,7 @@ const Trade = new  mongoose.Schema({
             unique: true
         
     },
+
     stop_loss : {
         type:mongoose.Schema.Types.String,
             require :true,

@@ -34,14 +34,7 @@ async function main(orderParams) {
     let positionside = null;
     let marketval = market.toString().toUpperCase();
 
-    if (marketval == "TRIGGER") {
-        marketval = "TRIGGER_MARKET";
-    } else if (marketval == "MARKET") {
-        marketval = "MARKET";
-    } else {
-        console.error('Invalid market value');
-        return { error: 'Invalid market value', status: 400 };
-    }
+   
 
     if (typeval === 'LONG') {
         positionside = "LONG";
