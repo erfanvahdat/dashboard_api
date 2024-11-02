@@ -185,12 +185,14 @@ router.post("/Reverse_pos", async (req, res) => {
     try {
         const find_current_trade = await Trade_status.find({ symbol: body.symbol });
 
-        if (find_current_trade == undefined || find_current_trade) {
+        // Common error on handling database current position meta data
+        if (find_current_trade == undefined || !find_current_trade) {
             return res
                 .status(200)
                 .send("Current trade does not exist in the database");
         }
 
+        
         const orderId = body.orderId;
         const symbol = find_current_trade[0].symbol;
         const quantity = find_current_trade[0].quantity;
@@ -303,57 +305,52 @@ router.delete("/close_position_orders", async (req, res) => {
 
 // record_trade_history
 router.get("/update_trade_history", async (req, res) => {
-    // Trade_history of last 7 days => {bingx api does not provide more than 7 days of perpetual trade_history}
-    const trade_history = await Trade_history();
+    try {
+        const trade_history = await Trade_history();
 
-    if (trade_history.lengh == 0 || !trade_history) {
-        return res
-            .status(200)
-            .send(
-                "Trade_history api endpoint is borken, please check the api router again.."
-            );
-    }
-    const res_filter = trade_history.filter(
-        (item) => item.status == "FILLED" && parseFloat(item.profit) !== 0.0
-    );
+        if (!trade_history || trade_history.length === 0) {
+            return res.status(200).send("Trade_history API endpoint is broken, please check the API router again..");
+        }
 
-    const mapped_obj = res_filter.sort((a, b) => b.time - a.time);
+        const res_filter = trade_history.filter(
+            (item) => item.status === "FILLED" && parseFloat(item.profit) !== 0.0
+        );
 
-    console.log(chalk.blue("processing the Trade_history..."));
+        const mapped_obj = res_filter.sort((a, b) => b.time - a.time);
 
-    mapped_obj.forEach(async (element) => {
-        try {
+        console.log(chalk.blue("Processing the Trade_history..."));
+
+        const savePromises = mapped_obj.map(async (element) => {
             const existingRecord = await trade_history_model.findOne({
                 orderId: parseFloat(element.orderId),
             });
 
-            // Trade does already Exist!
-            if (existingRecord) {
-                // console.log(`Order with orderId ${element.orderId} already exists. Skipping...`);
-                return res.status(200).send("trade_history record already exist...");
+            if (!existingRecord) {
+                const new_trade_history_record = new trade_history_model({
+                    symbol: element.symbol,
+                    orderId: element.orderId,
+                    side: element.side,
+                    profit: element.profit,
+                    type: element.type,
+                    price: element.price,
+                    time: element.time,
+                    leverage: element.leverage,
+                });
+
+                await new_trade_history_record.save();
             }
+        });
 
-            const new_trade_history_record = new trade_history_model({
-                symbol: element.symbol,
-                orderId: element.orderId,
-                side: element.side,
-                profit: element.profit,
-                type: element.type,
-                price: element.price,
-                time: element.time,
-                leverage: element.leverage,
-            });
+        await Promise.all(savePromises); // Wait for all save operations to complete
 
-            // Save the new record to the database
-            await new_trade_history_record.save();
-        } catch (err) {
-            console.error(`Error saving trade history: ${err.message}`);
-        }
-    });
-
-    console.log(chalk.green("Trade_History Table is updated"));
-    return res.status(200).send("Trade_History Table is updated...");
+        console.log(chalk.green("Trade_History Table is updated"));
+        return res.status(200).send("Trade_History Table is updated...");
+    } catch (err) {
+        console.error(`Error saving trade history: ${err.message}`);
+        return res.status(500).send("An error occurred while updating trade history.");
+    }
 });
+
 
 // get_trade_history from db
 router.get("/trade_history/all", async (req, res) => {
