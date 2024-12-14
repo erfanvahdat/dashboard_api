@@ -28,7 +28,17 @@ const Trade = new  mongoose.Schema({
             unique: false
         
     },
+    risk : {
+        type:mongoose.Schema.Types.String,
+            require :true,
+            unique: false
+    },
     quantity : {
+        type:mongoose.Schema.Types.String,
+            require :true,
+            unique: false
+    },
+    quantity_dollar : {
         type:mongoose.Schema.Types.String,
             require :true,
             unique: false
@@ -38,7 +48,15 @@ const Trade = new  mongoose.Schema({
             require :true,
             unique: false
         
-    }
+    },
+    position_type : {
+        type:mongoose.Schema.Types.String,
+            require :true,
+            unique: false
+        
+    },
+    
+
     
 })
 

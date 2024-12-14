@@ -5,6 +5,7 @@ import CryptoJS from "crypto-js";
 // Load environment variables
 dotenv.config();
 
+
 // Set up API credentials and endpoint details
 const API_KEY = process.env.API_KEY;
 const API_SECRET = process.env.SECRET_KEY;
@@ -86,9 +87,9 @@ async function Trade_history() {
     return orders;
 }
 
-const obj = await Trade_history();
-// console.log(obj.filter(item=> item.status == 'FILLED'))
-
+// const obj = await Trade_history();
+// // console.log(obj.filter(item=> item.status == 'FILLED'))
+// console.log(obj)
 
 export default Trade_history;
                 

@@ -20,9 +20,12 @@ import swaggerUi from 'swagger-ui-express';
 // import router_user from './routes/users.mjs';-
 import Balance from './bingxapi/Balance.mjs';
 
+import multer from "multer";
+import path from "path";
+
 // Imporintg DB models
 import Balance_model from './mongoose/schemas/Balanceschemas.mjs';
-
+import journal_model from './mongoose/schemas/Journal.mjs';
 const app = express();
 
 // importing router in .env file
@@ -59,7 +62,7 @@ const swaggerOptions = {
       },
       servers: [
         {
-          url: 'http://localhost:3003', // Adjust to your app's server URL
+          url: 'http://localhost:3006', // Adjust to your app's server URL
         },
       ],
     },
@@ -82,6 +85,8 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
@@ -91,17 +96,65 @@ app.set('view engine', 'pug');
 app.set('views', '../views');
 
 
+let timer =  Date.now()
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      cb(null, path.join(process.cwd(), "uploads")); // Save files to ./uploads folder
+  },
+  filename: (req, file, cb) => {
+      // Extract the file extension
+      const fileExtension = path.extname(file.originalname); // Includes the dot (e.g., ".png")
+      // Set the filename to Date.now() + original extension
+      cb(null, `${ timer }${fileExtension}`);
+  },
+});
+const upload = multer({ storage });
+
+
 // Home route
 app.get('/', async (req, res) => {
   // Uncomment if needed for session usage
-  // console.log(req.session);
-  // console.log(req.session.id);
-
-  // req.session.visited = true;
   res.render('first_view');
   res.sendStatus(200);
 });
 
+// ----------------------------------------API_upload----------------------------------
+app.post("/api/upload", upload.array("demo[]"), async (req, res) => {
+  try {
+      // if (!req.files || req.files.length === 0) {
+      //     return res.status(400).json({ message: "No files uploaded." });
+      // }
+
+      const { symbol, type, result, time, description, market } = req.body;
+
+      // Ensure all required fields are present
+      if (!symbol || !type || !result || !time || !description || !market) {
+          return res.status(200).json({ message: "All fields are required" });
+      }
+
+      // Save to the database
+      const newJournalEntry = new journal_model({
+          symbol,
+          type,
+          result,
+          time, 
+          description,
+          market,
+          image: timer , // Save file metadata in the database
+      });
+
+      await newJournalEntry.save();
+
+      res.status(201).json({
+          message: "Files uploaded and journal entry created successfully.",
+          journalEntry: newJournalEntry,
+      });
+  } catch (error) {
+      console.error("Error uploading files or creating journal entry:", error);
+      res.status(500).json({ message: "Error creating journal entry." });
+  }
+});
+// ----------------------------------------------------------------------------
 app.post('/hello', async (req, res) => {
   const { body } = req;
   const newUser = {
@@ -141,6 +194,42 @@ app.get('/auth/status', (req, res) => {
 app.use('/api', bingx_router)
 
 
+
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------ Journal Querry ----------------------------------------------------------------------------
+app.post("/Journal", async (req, res) => {
+  try {
+    const { symbol, type, result, time, description, market,image } = req.body;
+
+    if (!symbol || !type || !result || !time || !description || !market) {
+      return res.status(200).json({ message: "All fields are required" });
+    }
+
+    const newJournal = new journal_model({
+      symbol,
+      type,
+      result,
+      time,
+      description,
+      market,
+      image,
+    });
+
+    await newJournal.save();
+
+    console.log(chalk.green("Journal entry created successfully"));
+    return res.status(201).json(newJournal);
+  } catch (err) {
+    console.error(chalk.red("Error creating journal entry:"), err);
+    return res.status(500).json({ message: "Error creating journal entry" });
+  }
+});
+
+
+
+
+
 // ----------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------ Balance accoutn Querry ----------------------------------------------------------------------------
 // Balance of current API Acccount
@@ -162,8 +251,6 @@ app.get("/get_balance",  async (req, res) => {
   }
 
 });
-
-
 
 app.post("/save_balance_db",  async (req, res) => {
   try {

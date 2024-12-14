@@ -11,6 +11,7 @@ import all_pending_orders from "../bingxapi/all_pending_orders.mjs";
 import close_pending_orders from "../bingxapi/close_pending_orders.mjs";
 import close_position_orders from "../bingxapi/close_open_positions.mjs";
 import Trade_history from "../bingxapi/trade_history.mjs";
+
 import crpyto_list from "../bingxapi/crypto_list_api.mjs";
 import Trade_status from "../mongoose/schemas/Trade_status.mjs";
 import set_tp_sl from "../bingxapi/set_tp_sl.mjs";
@@ -387,9 +388,31 @@ router.post("/Trade_status/get_symbol", async (req, res) => {
         // If found, return the data
         return res.status(200).send({ msg: "Data does exist", data: find_ticker });
     } catch (err) {
-        // Fix: Do not chain `sendStatus(400)` with `.send()`
         res.status(400).send({
             msg: `Something went wrong while getting the symbol table! \n ${err}`,
+        });
+    }
+});
+
+
+// get meta data of current trade
+router.get("/Trade_status/get_all", async (req, res) => {
+    const { body } = req;
+
+    try {
+        
+        const Trade_record = await Trade_status.find();
+        // Check if ticker was found
+        if (!Trade_record) {
+            // Fixing condition: findOne returns null if not found
+            return res.send(`trade_record does not exist in DB!`);
+        }
+
+        // If found, return the data
+        return res.status(200).send({ msg: "Data does exist", data: Trade_record });
+    } catch (err) {
+        res.status(400).send({
+            msg: `Something went wrong while getting the Trade_record table! \n ${err}`,
         });
     }
 });
@@ -424,8 +447,13 @@ router.post("/save_trade", async (req, res) => {
                 stop_loss: body.stop_loss,
                 take_profit: body.take_profit,
                 limitprice: body.limitprice,
+
+                risk : body.risk,
                 quantity: body.quantity,
+                quantity_dollar : body.quantity_dollar,
+
                 side: body.side,
+                position_type : body.position_type,
             });
 
             await newTrade.save();
@@ -435,6 +463,7 @@ router.post("/save_trade", async (req, res) => {
         }
     } catch (error) {
         console.error(
+            
             "Error inserting or checking for duplicate symbol:",
             error.errorResponse
         );
